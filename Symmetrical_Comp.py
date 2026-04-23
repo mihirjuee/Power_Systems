@@ -38,9 +38,9 @@ V2 = (Va + a**2 * Vb + a * Vc) / 3
 st.subheader("📊 Sequence Components")
 
 colA, colB, colC = st.columns(3)
-colA.metric("V0 (Zero)", format_phasor(V0))
-colB.metric("V1 (Positive)", format_phasor(V1))
-colC.metric("V2 (Negative)", format_phasor(V2))
+colA.metric("V0 (Zero)", f"{abs(V0):.2f} ∠ {np.angle(V0, deg=True):.1f}°")
+colB.metric("V1 (Positive)", f"{abs(V1):.2f} ∠ {np.angle(V1, deg=True):.1f}°")
+colC.metric("V2 (Negative)", f"{abs(V2):.2f} ∠ {np.angle(V2, deg=True):.1f}°")
 
 # ---------------- VECTOR DRAW FUNCTION ----------------
 def draw_vector(ax, start, end, color, label):
