@@ -6,7 +6,52 @@ import plotly.graph_objects as go
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Symmetrical Components Lab", page_icon="logo.png", layout="wide")
+st.markdown("""
+<style>
 
+/* Sidebar background */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+    color: white;
+}
+
+/* Sidebar text */
+[data-testid="stSidebar"] * {
+    color: white !important;
+}
+
+/* Input fields */
+[data-testid="stSidebar"] .stNumberInput input,
+[data-testid="stSidebar"] .stTextInput input {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Labels */
+[data-testid="stSidebar"] label {
+    color: #f1f1f1 !important;
+    font-weight: 500;
+}
+
+/* Slider */
+[data-testid="stSidebar"] .stSlider > div {
+    color: white;
+}
+
+/* Section headers */
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: #ffffff !important;
+}
+
+/* Divider line */
+[data-testid="stSidebar"] hr {
+    border-color: rgba(255,255,255,0.3);
+}
+
+</style>
+""", unsafe_allow_html=True)
 st.title("⚡ Symmetrical Components & Vector Visualization Lab")
 
 # ---------------- INPUT ----------------
