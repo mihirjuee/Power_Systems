@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Symmetrical Components", layout="wide")
+st.set_page_config(page_title="Symmetrical Components",page_icon="logo.png", layout="wide")
 
 st.title("⚡ Symmetrical Components Analyzer")
 
