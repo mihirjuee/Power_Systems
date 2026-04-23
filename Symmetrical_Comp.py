@@ -115,10 +115,13 @@ with col3:
     st.pyplot(fig3)
 
 # ---------------- RECONSTRUCTION ----------------
+st.subheader("🔁 Vector Reconstruction")
+
+figR, axes = plt.subplots(1, 3, figsize=(15, 4))
+
 def reconstruct(ax, V1, V2, V0, title):
     origin = 0+0j
 
-    # Draw vectors
     draw_vector(ax, origin, V1, "blue", "V1")
     draw_vector(ax, V1, V1+V2, "orange", "V2")
     draw_vector(ax, V1+V2, V1+V2+V0, "purple", "V0")
@@ -126,19 +129,18 @@ def reconstruct(ax, V1, V2, V0, title):
     V_final = V1 + V2 + V0
     draw_vector(ax, origin, V_final, "red", title)
 
-    # -------- AUTO ZOOM ONLY HERE --------
-    max_val = max(abs(V1), abs(V2), abs(V0), abs(V_final))
-    limit = max_val * 1.4 if max_val > 0 else 1
+    setup_axis(ax, title)
 
-    ax.set_xlim(-limit, limit)
-    ax.set_ylim(-limit, limit)
+# Va
+reconstruct(axes[0], V1, V2, V0, "Va")
 
-    # Axis styling
-    ax.set_title(title)
-    ax.axhline(0)
-    ax.axvline(0)
-    ax.set_aspect('equal')
-    ax.grid(True)
+# Vb
+reconstruct(axes[1], a**2*V1, a*V2, V0, "Vb")
+
+# Vc
+reconstruct(axes[2], a*V1, a**2*V2, V0, "Vc")
+
+st.pyplot(figR)
 
 # ---------------- EXPLANATION OF a ----------------
 st.subheader("📘 What is 'a'?")
