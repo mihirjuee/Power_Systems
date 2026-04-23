@@ -207,10 +207,6 @@ st.markdown("""
 - a³ = 1
 - 1 + a + a² = 0
 
-### ⚡ Usage
-- Generates balanced 3-phase sets
-- Used in symmetrical component transformation
-""")
 
 # ---------------- LEGEND ----------------
 st.markdown("""
