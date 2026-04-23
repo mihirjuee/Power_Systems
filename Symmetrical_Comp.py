@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
+import plotly.graph_objects as go
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Symmetrical Components Lab", layout="wide")
@@ -114,32 +115,57 @@ with col3:
     st.pyplot(fig3)
 
 # ---------------- RECONSTRUCTION ----------------
-st.subheader("🔁 Vector Reconstruction")
+st.subheader("🔁 Vector Reconstruction (Interactive)")
 
-figR, axes = plt.subplots(1, 3, figsize=(15, 4))
+def plot_reconstruction_plotly(V1, V2, V0, title):
+    fig = go.Figure()
 
-def reconstruct(ax, V1, V2, V0, title):
     origin = 0+0j
+    end1 = V1
+    end2 = V1 + V2
+    final = V1 + V2 + V0
 
-    draw_vector(ax, origin, V1, "blue", "V1")
-    draw_vector(ax, V1, V1+V2, "orange", "V2")
-    draw_vector(ax, V1+V2, V1+V2+V0, "purple", "V0")
+    def add_vector(start, end, name, color):
+        fig.add_trace(go.Scatter(
+            x=[start.real, end.real],
+            y=[start.imag, end.imag],
+            mode='lines+markers+text',
+            line=dict(color=color, width=3),
+            marker=dict(size=6),
+            text=[None, name],
+            textposition="top center",
+            name=name
+        ))
 
-    V_final = V1 + V2 + V0
-    draw_vector(ax, origin, V_final, "red", title)
+    # Add vectors
+    add_vector(origin, end1, "V1", "blue")
+    add_vector(end1, end2, "V2", "orange")
+    add_vector(end2, final, "V0", "purple")
+    add_vector(origin, final, title, "red")
 
-    setup_axis(ax, title)
+    fig.update_layout(
+        title=title,
+        xaxis_title="Real",
+        yaxis_title="Imaginary",
+        showlegend=False
+    )
 
-# Va
-reconstruct(axes[0], V1, V2, V0, "Va")
+    fig.update_xaxes(zeroline=True)
+    fig.update_yaxes(zeroline=True, scaleanchor="x", scaleratio=1)
 
-# Vb
-reconstruct(axes[1], a**2*V1, a*V2, V0, "Vb")
+    return fig
 
-# Vc
-reconstruct(axes[2], a*V1, a**2*V2, V0, "Vc")
+# Layout
+col1, col2, col3 = st.columns(3)
 
-st.pyplot(figR)
+with col1:
+    st.plotly_chart(plot_reconstruction_plotly(V1, V2, V0, "Va"), use_container_width=True)
+
+with col2:
+    st.plotly_chart(plot_reconstruction_plotly(a**2*V1, a*V2, V0, "Vb"), use_container_width=True)
+
+with col3:
+    st.plotly_chart(plot_reconstruction_plotly(a*V1, a**2*V2, V0, "Vc"), use_container_width=True)
 
 # ---------------- EXPLANATION OF a ----------------
 st.subheader("📘 What is 'a'?")
