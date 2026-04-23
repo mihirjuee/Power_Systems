@@ -5,7 +5,7 @@ from matplotlib.patches import FancyArrowPatch
 import plotly.graph_objects as go
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Symmetrical Components Lab", layout="wide")
+st.set_page_config(page_title="Symmetrical Components Lab", Page_icon="logo.png", layout="wide")
 
 st.title("⚡ Symmetrical Components & Vector Visualization Lab")
 
