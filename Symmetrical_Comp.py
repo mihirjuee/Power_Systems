@@ -115,57 +115,30 @@ with col3:
     st.pyplot(fig3)
 
 # ---------------- RECONSTRUCTION ----------------
-st.subheader("🔁 Vector Reconstruction (Interactive)")
-
-def plot_reconstruction_plotly(V1, V2, V0, title):
-    fig = go.Figure()
-
+def reconstruct(ax, V1, V2, V0, title):
     origin = 0+0j
-    end1 = V1
-    end2 = V1 + V2
-    final = V1 + V2 + V0
 
-    def add_vector(start, end, name, color):
-        fig.add_trace(go.Scatter(
-            x=[start.real, end.real],
-            y=[start.imag, end.imag],
-            mode='lines+markers+text',
-            line=dict(color=color, width=3),
-            marker=dict(size=6),
-            text=[None, name],
-            textposition="top center",
-            name=name
-        ))
+    # Draw vectors
+    draw_vector(ax, origin, V1, "blue", "V1")
+    draw_vector(ax, V1, V1+V2, "orange", "V2")
+    draw_vector(ax, V1+V2, V1+V2+V0, "purple", "V0")
 
-    # Add vectors
-    add_vector(origin, end1, "V1", "blue")
-    add_vector(end1, end2, "V2", "orange")
-    add_vector(end2, final, "V0", "purple")
-    add_vector(origin, final, title, "red")
+    V_final = V1 + V2 + V0
+    draw_vector(ax, origin, V_final, "red", title)
 
-    fig.update_layout(
-        title=title,
-        xaxis_title="Real",
-        yaxis_title="Imaginary",
-        showlegend=False
-    )
+    # -------- AUTO ZOOM ONLY HERE --------
+    max_val = max(abs(V1), abs(V2), abs(V0), abs(V_final))
+    limit = max_val * 1.4 if max_val > 0 else 1
 
-    fig.update_xaxes(zeroline=True)
-    fig.update_yaxes(zeroline=True, scaleanchor="x", scaleratio=1)
+    ax.set_xlim(-limit, limit)
+    ax.set_ylim(-limit, limit)
 
-    return fig
-
-# Layout
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.plotly_chart(plot_reconstruction_plotly(V1, V2, V0, "Va"), use_container_width=True)
-
-with col2:
-    st.plotly_chart(plot_reconstruction_plotly(a**2*V1, a*V2, V0, "Vb"), use_container_width=True)
-
-with col3:
-    st.plotly_chart(plot_reconstruction_plotly(a*V1, a**2*V2, V0, "Vc"), use_container_width=True)
+    # Axis styling
+    ax.set_title(title)
+    ax.axhline(0)
+    ax.axvline(0)
+    ax.set_aspect('equal')
+    ax.grid(True)
 
 # ---------------- EXPLANATION OF a ----------------
 st.subheader("📘 What is 'a'?")
