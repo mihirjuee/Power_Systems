@@ -119,26 +119,55 @@ st.subheader("🔁 Vector Reconstruction")
 
 figR, axes = plt.subplots(1, 3, figsize=(15, 4))
 
+# ---------------- GLOBAL AXIS CALCULATION ----------------
+vectors_all = [
+    V1, V1+V2, V1+V2+V0,                         # Va
+    a**2*V1, a**2*V1 + a*V2, a**2*V1 + a*V2 + V0,  # Vb
+    a*V1, a*V1 + a**2*V2, a*V1 + a**2*V2 + V0      # Vc
+]
+
+max_val = max(abs(v) for v in vectors_all)
+if max_val < 1e-6:
+    max_val = 1
+
+GLOBAL_LIMIT = max_val * 1.3
+
+
+# ---------------- RECONSTRUCTION FUNCTION ----------------
 def reconstruct(ax, V1, V2, V0, title):
     origin = 0+0j
 
-    draw_vector(ax, origin, V1, "blue", "V1")
-    draw_vector(ax, V1, V1+V2, "orange", "V2")
-    draw_vector(ax, V1+V2, V1+V2+V0, "purple", "V0")
+    end1 = V1
+    end2 = V1 + V2
+    final = V1 + V2 + V0
 
-    V_final = V1 + V2 + V0
-    draw_vector(ax, origin, V_final, "red", title)
+    # Draw vectors
+    draw_vector(ax, origin, end1, "blue", "V1")
+    draw_vector(ax, end1, end2, "orange", "V2")
+    draw_vector(ax, end2, final, "purple", "V0")
+    draw_vector(ax, origin, final, "red", title)
 
-    setup_axis(ax, title)
+    # Same axis for all plots
+    ax.set_xlim(-GLOBAL_LIMIT, GLOBAL_LIMIT)
+    ax.set_ylim(-GLOBAL_LIMIT, GLOBAL_LIMIT)
 
+    # Styling
+    ax.set_title(title)
+    ax.axhline(0)
+    ax.axvline(0)
+    ax.set_aspect('equal')
+    ax.grid(True)
+
+
+# ---------------- PLOTS ----------------
 # Va
 reconstruct(axes[0], V1, V2, V0, "Va")
 
 # Vb
-reconstruct(axes[1], a**2*V1, a*V2, V0, "Vb")
+reconstruct(axes[1], a**2 * V1, a * V2, V0, "Vb")
 
 # Vc
-reconstruct(axes[2], a*V1, a**2*V2, V0, "Vc")
+reconstruct(axes[2], a * V1, a**2 * V2, V0, "Vc")
 
 st.pyplot(figR)
 
