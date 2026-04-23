@@ -134,7 +134,7 @@ GLOBAL_LIMIT = max_val * 1.3
 
 
 # ---------------- RECONSTRUCTION FUNCTION ----------------
-st.subheader("🔁 Vector Reconstruction (Combined Plot)")
+#st.subheader("🔁 Vector Reconstruction (Combined Plot)")
 
 fig, ax = plt.subplots(figsize=(7, 7))
 
