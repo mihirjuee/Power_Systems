@@ -14,15 +14,22 @@ st.sidebar.header("Phase Voltages")
 def phasor(mag, angle_deg):
     return mag * np.exp(1j * np.deg2rad(angle_deg))
 
-Va_mag = st.sidebar.slider("Va Magnitude", 0.0, 500.0, 230.0)
-Va_ang = st.sidebar.slider("Va Angle (deg)", -180, 180, 0)
+# -------- Va --------
+st.sidebar.subheader("Va")
+Va_mag = st.sidebar.number_input("Magnitude Va", value=230.0, step=1.0)
+Va_ang = st.sidebar.number_input("Angle Va (deg)", value=0.0, step=1.0)
 
-Vb_mag = st.sidebar.slider("Vb Magnitude", 0.0, 500.0, 230.0)
-Vb_ang = st.sidebar.slider("Vb Angle (deg)", -180, 180, -120)
+# -------- Vb --------
+st.sidebar.subheader("Vb")
+Vb_mag = st.sidebar.number_input("Magnitude Vb", value=230.0, step=1.0)
+Vb_ang = st.sidebar.number_input("Angle Vb (deg)", value=-120.0, step=1.0)
 
-Vc_mag = st.sidebar.slider("Vc Magnitude", 0.0, 500.0, 230.0)
-Vc_ang = st.sidebar.slider("Vc Angle (deg)", -180, 180, 120)
+# -------- Vc --------
+st.sidebar.subheader("Vc")
+Vc_mag = st.sidebar.number_input("Magnitude Vc", value=230.0, step=1.0)
+Vc_ang = st.sidebar.number_input("Angle Vc (deg)", value=120.0, step=1.0)
 
+# Convert to phasors
 Va = phasor(Va_mag, Va_ang)
 Vb = phasor(Vb_mag, Vb_ang)
 Vc = phasor(Vc_mag, Vc_ang)
