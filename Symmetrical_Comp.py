@@ -18,7 +18,7 @@ def phasor(mag, angle_deg):
 # -------- Va --------
 st.sidebar.subheader("Va")
 Va_mag = st.sidebar.number_input("Magnitude Va", value=230.0, step=1.0)
-Va_ang = st.sidebar.number_input("Angle Va (deg)", value=0.0, step=1.0)
+Va_ang = st.sidebar.number_input("Angle Va (deg)", value=50.0, step=1.0)
 
 # -------- Vb --------
 st.sidebar.subheader("Vb")
