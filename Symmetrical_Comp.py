@@ -3,19 +3,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Symmetrical Components", page_icon="logo.png", layout="wide")
+st.set_page_config(page_title="Symmetrical Components Lab", layout="wide")
 
-st.title("⚡ Symmetrical Components Analyzer")
+st.title("⚡ Symmetrical Components & Vector Visualization Lab")
 
 st.markdown("""
-Convert **phase quantities (Va, Vb, Vc)** into:
-- Positive sequence (V1)
-- Negative sequence (V2)
-- Zero sequence (V0)
+Visualize:
+- Original 3-phase system  
+- Symmetrical components (V₀, V₁, V₂)  
+- Vector reconstruction of Va, Vb, Vc  
 """)
 
 # ---------------- INPUT ----------------
-st.sidebar.header("Phase Voltages (Magnitude & Angle)")
+st.sidebar.header("Phase Voltages")
+
+def phasor(mag, angle_deg):
+    return mag * np.exp(1j * np.deg2rad(angle_deg))
 
 Va_mag = st.sidebar.slider("Va Magnitude", 0.0, 500.0, 230.0)
 Va_ang = st.sidebar.slider("Va Angle (deg)", -180, 180, 0)
@@ -26,76 +29,142 @@ Vb_ang = st.sidebar.slider("Vb Angle (deg)", -180, 180, -120)
 Vc_mag = st.sidebar.slider("Vc Magnitude", 0.0, 500.0, 230.0)
 Vc_ang = st.sidebar.slider("Vc Angle (deg)", -180, 180, 120)
 
-# ---------------- COMPLEX CONVERSION ----------------
-def phasor(mag, angle_deg):
-    return mag * np.exp(1j * np.deg2rad(angle_deg))
-
 Va = phasor(Va_mag, Va_ang)
 Vb = phasor(Vb_mag, Vb_ang)
 Vc = phasor(Vc_mag, Vc_ang)
 
-# Operator a
+# ---------------- SYMMETRICAL COMPONENTS ----------------
 a = np.exp(1j * 2 * np.pi / 3)
 
-# ---------------- SYMMETRICAL COMPONENTS ----------------
 V0 = (Va + Vb + Vc) / 3
-V1 = (Va + a*Vb + a**2 * Vc) / 3
+V1 = (Va + a * Vb + a**2 * Vc) / 3
 V2 = (Va + a**2 * Vb + a * Vc) / 3
 
-# ---------------- DISPLAY ----------------
-col1, col2 = st.columns(2)
+# ---------------- DISPLAY VALUES ----------------
+st.subheader("📊 Sequence Components")
 
-with col1:
-    st.subheader("📊 Sequence Components")
+colA, colB, colC = st.columns(3)
 
-    st.write(f"**V0 (Zero Seq):** {abs(V0):.2f} ∠ {np.angle(V0, deg=True):.2f}°")
-    st.write(f"**V1 (Positive Seq):** {abs(V1):.2f} ∠ {np.angle(V1, deg=True):.2f}°")
-    st.write(f"**V2 (Negative Seq):** {abs(V2):.2f} ∠ {np.angle(V2, deg=True):.2f}°")
+colA.metric("V0 (Zero Seq)", f"{abs(V0):.2f} ∠ {np.angle(V0, deg=True):.1f}°")
+colB.metric("V1 (Positive Seq)", f"{abs(V1):.2f} ∠ {np.angle(V1, deg=True):.1f}°")
+colC.metric("V2 (Negative Seq)", f"{abs(V2):.2f} ∠ {np.angle(V2, deg=True):.1f}°")
 
-# ---------------- PHASOR PLOT ----------------
-with col2:
-    st.subheader("📉 Phasor Diagram")
+# ---------------- PHASOR FUNCTION ----------------
+def draw_phasors(ax, phasors, labels, title):
+    for ph, label in zip(phasors, labels):
+        ax.arrow(0, 0, ph.real, ph.imag, length_includes_head=True)
+        ax.text(ph.real, ph.imag, label)
 
-    fig, ax = plt.subplots()
-
-    def draw_phasor(V, label):
-        ax.arrow(0, 0, V.real, V.imag, head_width=10, length_includes_head=True)
-        ax.text(V.real, V.imag, label)
-
-    draw_phasor(Va, "Va")
-    draw_phasor(Vb, "Vb")
-    draw_phasor(Vc, "Vc")
-
-    ax.set_xlabel("Real")
-    ax.set_ylabel("Imaginary")
+    ax.set_title(title)
     ax.axhline(0)
     ax.axvline(0)
+    ax.set_aspect('equal')
     ax.grid(True)
 
-    st.pyplot(fig)
+# ---------------- ORIGINAL PHASORS ----------------
+st.subheader("📉 Original Phase Phasors")
 
-# ---------------- RECONSTRUCTION CHECK ----------------
-st.subheader("🔁 Reconstruction Check")
+fig0, ax0 = plt.subplots()
+draw_phasors(ax0, [Va, Vb, Vc], ["Va", "Vb", "Vc"], "Original System")
+st.pyplot(fig0)
 
-Va_rec = V0 + V1 + V2
-Vb_rec = V0 + a**2 * V1 + a * V2
-Vc_rec = V0 + a * V1 + a**2 * V2
+# ---------------- SEQUENCE PHASORS ----------------
+st.subheader("🔁 Symmetrical Component Phasors")
 
-st.write(f"Va reconstructed: {abs(Va_rec):.2f}")
-st.write(f"Vb reconstructed: {abs(Vb_rec):.2f}")
-st.write(f"Vc reconstructed: {abs(Vc_rec):.2f}")
+col1, col2, col3 = st.columns(3)
+
+# Positive
+with col1:
+    Va1 = V1
+    Vb1 = V1 * a**2
+    Vc1 = V1 * a
+
+    fig1, ax1 = plt.subplots()
+    draw_phasors(ax1, [Va1, Vb1, Vc1], ["Va1", "Vb1", "Vc1"], "Positive (ABC)")
+    st.pyplot(fig1)
+
+# Negative
+with col2:
+    Va2 = V2
+    Vb2 = V2 * a
+    Vc2 = V2 * a**2
+
+    fig2, ax2 = plt.subplots()
+    draw_phasors(ax2, [Va2, Vb2, Vc2], ["Va2", "Vb2", "Vc2"], "Negative (ACB)")
+    st.pyplot(fig2)
+
+# Zero
+with col3:
+    Va0 = V0
+    Vb0 = V0
+    Vc0 = V0
+
+    fig3, ax3 = plt.subplots()
+    draw_phasors(ax3, [Va0, Vb0, Vc0], ["Va0", "Vb0", "Vc0"], "Zero (In-phase)")
+    st.pyplot(fig3)
+
+# ---------------- RECONSTRUCTION ----------------
+st.subheader("🔁 Vector Reconstruction (Va, Vb, Vc)")
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+def draw_reconstruction(ax, V1, V2, V0, title):
+    # V1
+    ax.arrow(0, 0, V1.real, V1.imag, length_includes_head=True)
+    ax.text(V1.real, V1.imag, "V1")
+
+    # V2
+    end1 = V1
+    ax.arrow(end1.real, end1.imag, V2.real, V2.imag, length_includes_head=True)
+    ax.text(end1.real + V2.real, end1.imag + V2.imag, "V2")
+
+    # V0
+    end2 = V1 + V2
+    ax.arrow(end2.real, end2.imag, V0.real, V0.imag, length_includes_head=True)
+    ax.text(end2.real + V0.real, end2.imag + V0.imag, "V0")
+
+    # Resultant
+    V_final = V1 + V2 + V0
+    ax.arrow(0, 0, V_final.real, V_final.imag, linestyle="--")
+    ax.text(V_final.real, V_final.imag, title, color="red")
+
+    ax.set_title(title)
+    ax.axhline(0)
+    ax.axvline(0)
+    ax.set_aspect('equal')
+    ax.grid(True)
+
+# Va
+draw_reconstruction(axes[0], V1, V2, V0, "Va")
+
+# Vb
+V1b = a**2 * V1
+V2b = a * V2
+draw_reconstruction(axes[1], V1b, V2b, V0, "Vb")
+
+# Vc
+V1c = a * V1
+V2c = a**2 * V2
+draw_reconstruction(axes[2], V1c, V2c, V0, "Vc")
+
+st.pyplot(fig)
 
 # ---------------- THEORY ----------------
-st.subheader("📘 Theory")
-
-st.latex(r"V_0 = \frac{V_a + V_b + V_c}{3}")
-st.latex(r"V_1 = \frac{V_a + aV_b + a^2V_c}{3}")
-st.latex(r"V_2 = \frac{V_a + a^2V_b + aV_c}{3}")
+st.subheader("📘 Key Concepts")
 
 st.markdown("""
-### ⚡ Key Concepts:
-- Positive sequence → balanced forward rotation
-- Negative sequence → reverse rotation
-- Zero sequence → in-phase components
-- Used in fault analysis (LG, LL, LLG)
+### ⚡ Symmetrical Components:
+- **Positive Sequence (V1)** → Balanced ABC system  
+- **Negative Sequence (V2)** → Reverse rotation (ACB)  
+- **Zero Sequence (V0)** → All in phase  
+
+### ⚡ Reconstruction:
+Each phase is the **vector sum**:
+- Va = V1 + V2 + V0  
+- Vb = a²V1 + aV2 + V0  
+- Vc = aV1 + a²V2 + V0  
+
+### ⚡ Why important?
+- Basis of **fault analysis (LG, LL, LLG)**  
+- Used in **power system protection**  
 """)
