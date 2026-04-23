@@ -167,9 +167,9 @@ for name, (V1p, V2p, V0p) in phases.items():
     all_vectors.extend([end1, end2, final])
 
     # Draw sequence vectors (same colors)
-    draw_vector(ax, origin, end1, "blue", f"{name}_1")
-    draw_vector(ax, end1, end2, "orange", f"{name}_2")
-    draw_vector(ax, end2, final, "purple", f"{name}_0")
+    draw_vector(ax, origin, end1, "blue", f"{name}1")
+    draw_vector(ax, end1, end2, "orange", f"{name}2")
+    draw_vector(ax, end2, final, "purple", f"{name}0")
 
     # Draw resultant
     draw_vector(ax, origin, final, result_colors[name], name)
