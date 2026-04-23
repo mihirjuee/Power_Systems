@@ -134,42 +134,64 @@ GLOBAL_LIMIT = max_val * 1.3
 
 
 # ---------------- RECONSTRUCTION FUNCTION ----------------
-def reconstruct(ax, V1, V2, V0, title):
-    origin = 0+0j
+st.subheader("🔁 Vector Reconstruction (Combined Plot)")
 
-    end1 = V1
-    end2 = V1 + V2
-    final = V1 + V2 + V0
+fig, ax = plt.subplots(figsize=(7, 7))
 
-    # Draw vectors
-    draw_vector(ax, origin, end1, "blue", "V1")
-    draw_vector(ax, end1, end2, "orange", "V2")
-    draw_vector(ax, end2, final, "purple", "V0")
-    draw_vector(ax, origin, final, "red", title)
+origin = 0 + 0j
 
-    # Same axis for all plots
-    ax.set_xlim(-GLOBAL_LIMIT, GLOBAL_LIMIT)
-    ax.set_ylim(-GLOBAL_LIMIT, GLOBAL_LIMIT)
+# ---------------- PREPARE ALL PHASES ----------------
+phases = {
+    "Va": (V1, V2, V0),
+    "Vb": (a**2 * V1, a * V2, V0),
+    "Vc": (a * V1, a**2 * V2, V0)
+}
 
-    # Styling
-    ax.set_title(title)
-    ax.axhline(0)
-    ax.axvline(0)
-    ax.set_aspect('equal')
-    ax.grid(True)
+# Colors for each phase resultant
+result_colors = {
+    "Va": "red",
+    "Vb": "green",
+    "Vc": "blue"
+}
 
+# ---------------- DRAW ALL ----------------
+all_vectors = []
 
-# ---------------- PLOTS ----------------
-# Va
-reconstruct(axes[0], V1, V2, V0, "Va")
+for name, (V1p, V2p, V0p) in phases.items():
 
-# Vb
-reconstruct(axes[1], a**2 * V1, a * V2, V0, "Vb")
+    end1 = V1p
+    end2 = V1p + V2p
+    final = V1p + V2p + V0p
 
-# Vc
-reconstruct(axes[2], a * V1, a**2 * V2, V0, "Vc")
+    # Collect for scaling
+    all_vectors.extend([end1, end2, final])
 
-st.pyplot(figR)
+    # Draw sequence vectors (same colors)
+    draw_vector(ax, origin, end1, "blue", f"{name}-V1")
+    draw_vector(ax, end1, end2, "orange", f"{name}-V2")
+    draw_vector(ax, end2, final, "purple", f"{name}-V0")
+
+    # Draw resultant
+    draw_vector(ax, origin, final, result_colors[name], name)
+
+# ---------------- AUTO AXIS ----------------
+max_val = max(abs(v) for v in all_vectors)
+if max_val < 1e-6:
+    max_val = 1
+
+limit = max_val * 1.4
+
+ax.set_xlim(-limit, limit)
+ax.set_ylim(-limit, limit)
+
+# ---------------- STYLE ----------------
+ax.set_title("Combined Vector Reconstruction (Va, Vb, Vc)")
+ax.axhline(0)
+ax.axvline(0)
+ax.set_aspect('equal')
+ax.grid(True)
+
+st.pyplot(fig)
 
 # ---------------- EXPLANATION OF a ----------------
 st.subheader("📘 What is 'a'?")
