@@ -1,18 +1,12 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Symmetrical Components Lab", layout="wide")
 
 st.title("⚡ Symmetrical Components & Vector Visualization Lab")
-
-st.markdown("""
-Visualize:
-- Original 3-phase system  
-- Symmetrical components (V₀, V₁, V₂)  
-- Vector reconstruction of Va, Vb, Vc  
-""")
 
 # ---------------- INPUT ----------------
 st.sidebar.header("Phase Voltages")
@@ -44,28 +38,40 @@ V2 = (Va + a**2 * Vb + a * Vc) / 3
 st.subheader("📊 Sequence Components")
 
 colA, colB, colC = st.columns(3)
+colA.metric("V0 (Zero)", f"{abs(V0):.2f} ∠ {np.angle(V0, deg=True):.1f}°")
+colB.metric("V1 (Positive)", f"{abs(V1):.2f} ∠ {np.angle(V1, deg=True):.1f}°")
+colC.metric("V2 (Negative)", f"{abs(V2):.2f} ∠ {np.angle(V2, deg=True):.1f}°")
 
-colA.metric("V0 (Zero Seq)", f"{abs(V0):.2f} ∠ {np.angle(V0, deg=True):.1f}°")
-colB.metric("V1 (Positive Seq)", f"{abs(V1):.2f} ∠ {np.angle(V1, deg=True):.1f}°")
-colC.metric("V2 (Negative Seq)", f"{abs(V2):.2f} ∠ {np.angle(V2, deg=True):.1f}°")
+# ---------------- VECTOR DRAW FUNCTION ----------------
+def draw_vector(ax, start, end, color, label):
+    arrow = FancyArrowPatch(
+        posA=(start.real, start.imag),
+        posB=(end.real, end.imag),
+        arrowstyle='->',
+        mutation_scale=15,
+        linewidth=2,
+        color=color
+    )
+    ax.add_patch(arrow)
+    ax.text(end.real, end.imag, label, color=color)
 
-# ---------------- PHASOR FUNCTION ----------------
-def draw_phasors(ax, phasors, labels, title):
-    for ph, label in zip(phasors, labels):
-        ax.arrow(0, 0, ph.real, ph.imag, length_includes_head=True)
-        ax.text(ph.real, ph.imag, label)
-
+def setup_axis(ax, title):
     ax.set_title(title)
     ax.axhline(0)
     ax.axvline(0)
     ax.set_aspect('equal')
     ax.grid(True)
+    ax.set_xlim(-300, 300)
+    ax.set_ylim(-300, 300)
 
 # ---------------- ORIGINAL PHASORS ----------------
 st.subheader("📉 Original Phase Phasors")
 
 fig0, ax0 = plt.subplots()
-draw_phasors(ax0, [Va, Vb, Vc], ["Va", "Vb", "Vc"], "Original System")
+draw_vector(ax0, 0+0j, Va, "red", "Va")
+draw_vector(ax0, 0+0j, Vb, "green", "Vb")
+draw_vector(ax0, 0+0j, Vc, "blue", "Vc")
+setup_axis(ax0, "Original System")
 st.pyplot(fig0)
 
 # ---------------- SEQUENCE PHASORS ----------------
@@ -75,96 +81,83 @@ col1, col2, col3 = st.columns(3)
 
 # Positive
 with col1:
-    Va1 = V1
-    Vb1 = V1 * a**2
-    Vc1 = V1 * a
-
     fig1, ax1 = plt.subplots()
-    draw_phasors(ax1, [Va1, Vb1, Vc1], ["Va1", "Vb1", "Vc1"], "Positive (ABC)")
+    draw_vector(ax1, 0, V1, "blue", "Va1")
+    draw_vector(ax1, 0, V1*a**2, "blue", "Vb1")
+    draw_vector(ax1, 0, V1*a, "blue", "Vc1")
+    setup_axis(ax1, "Positive (ABC)")
     st.pyplot(fig1)
 
 # Negative
 with col2:
-    Va2 = V2
-    Vb2 = V2 * a
-    Vc2 = V2 * a**2
-
     fig2, ax2 = plt.subplots()
-    draw_phasors(ax2, [Va2, Vb2, Vc2], ["Va2", "Vb2", "Vc2"], "Negative (ACB)")
+    draw_vector(ax2, 0, V2, "orange", "Va2")
+    draw_vector(ax2, 0, V2*a, "orange", "Vb2")
+    draw_vector(ax2, 0, V2*a**2, "orange", "Vc2")
+    setup_axis(ax2, "Negative (ACB)")
     st.pyplot(fig2)
 
 # Zero
 with col3:
-    Va0 = V0
-    Vb0 = V0
-    Vc0 = V0
-
     fig3, ax3 = plt.subplots()
-    draw_phasors(ax3, [Va0, Vb0, Vc0], ["Va0", "Vb0", "Vc0"], "Zero (In-phase)")
+    draw_vector(ax3, 0, V0, "purple", "Va0")
+    draw_vector(ax3, 0, V0, "purple", "Vb0")
+    draw_vector(ax3, 0, V0, "purple", "Vc0")
+    setup_axis(ax3, "Zero (In-phase)")
     st.pyplot(fig3)
 
 # ---------------- RECONSTRUCTION ----------------
-st.subheader("🔁 Vector Reconstruction (Va, Vb, Vc)")
+st.subheader("🔁 Vector Reconstruction")
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+figR, axes = plt.subplots(1, 3, figsize=(15, 4))
 
-def draw_reconstruction(ax, V1, V2, V0, title):
-    # V1
-    ax.arrow(0, 0, V1.real, V1.imag, length_includes_head=True)
-    ax.text(V1.real, V1.imag, "V1")
+def reconstruct(ax, V1, V2, V0, title):
+    origin = 0+0j
 
-    # V2
-    end1 = V1
-    ax.arrow(end1.real, end1.imag, V2.real, V2.imag, length_includes_head=True)
-    ax.text(end1.real + V2.real, end1.imag + V2.imag, "V2")
+    draw_vector(ax, origin, V1, "blue", "V1")
+    draw_vector(ax, V1, V1+V2, "orange", "V2")
+    draw_vector(ax, V1+V2, V1+V2+V0, "purple", "V0")
 
-    # V0
-    end2 = V1 + V2
-    ax.arrow(end2.real, end2.imag, V0.real, V0.imag, length_includes_head=True)
-    ax.text(end2.real + V0.real, end2.imag + V0.imag, "V0")
-
-    # Resultant
     V_final = V1 + V2 + V0
-    ax.arrow(0, 0, V_final.real, V_final.imag, linestyle="--")
-    ax.text(V_final.real, V_final.imag, title, color="red")
+    draw_vector(ax, origin, V_final, "red", title)
 
-    ax.set_title(title)
-    ax.axhline(0)
-    ax.axvline(0)
-    ax.set_aspect('equal')
-    ax.grid(True)
+    setup_axis(ax, title)
 
 # Va
-draw_reconstruction(axes[0], V1, V2, V0, "Va")
+reconstruct(axes[0], V1, V2, V0, "Va")
 
 # Vb
-V1b = a**2 * V1
-V2b = a * V2
-draw_reconstruction(axes[1], V1b, V2b, V0, "Vb")
+reconstruct(axes[1], a**2*V1, a*V2, V0, "Vb")
 
 # Vc
-V1c = a * V1
-V2c = a**2 * V2
-draw_reconstruction(axes[2], V1c, V2c, V0, "Vc")
+reconstruct(axes[2], a*V1, a**2*V2, V0, "Vc")
 
-st.pyplot(fig)
+st.pyplot(figR)
 
-# ---------------- THEORY ----------------
-st.subheader("📘 Key Concepts")
+# ---------------- EXPLANATION OF a ----------------
+st.subheader("📘 What is 'a'?")
+
+st.latex(r"a = e^{j\frac{2\pi}{3}} = 1\angle 120^\circ")
 
 st.markdown("""
-### ⚡ Symmetrical Components:
-- **Positive Sequence (V1)** → Balanced ABC system  
-- **Negative Sequence (V2)** → Reverse rotation (ACB)  
-- **Zero Sequence (V0)** → All in phase  
+### ⚡ Meaning
+- 'a' rotates a vector by **120° anticlockwise**
 
-### ⚡ Reconstruction:
-Each phase is the **vector sum**:
-- Va = V1 + V2 + V0  
-- Vb = a²V1 + aV2 + V0  
-- Vc = aV1 + a²V2 + V0  
+### 🔁 Properties
+- a² = 1∠240° = -120°
+- a³ = 1
+- 1 + a + a² = 0
 
-### ⚡ Why important?
-- Basis of **fault analysis (LG, LL, LLG)**  
-- Used in **power system protection**  
+### ⚡ Usage
+- Generates balanced 3-phase sets
+- Used in symmetrical component transformation
+""")
+
+# ---------------- LEGEND ----------------
+st.markdown("""
+### 🎨 Color Legend
+- 🔵 Positive Sequence (V1)
+- 🟠 Negative Sequence (V2)
+- 🟣 Zero Sequence (V0)
+- 🔴 Resultant Phase
 """)
