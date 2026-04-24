@@ -9,12 +9,12 @@ st.set_page_config(page_title="Transmission Line Simulator", layout="centered")
 st.title("⚡ Transmission Line Modeling & ABCD Analysis")
 
 st.markdown("""
-### Compare Transmission Line Models with Circuit Diagrams
+### Transmission Line Comparison
 - Short Line Model
 - Medium Line (π Model)
 - Long Line (Distributed Model)
 
-👉 **Assumption: Sending End Voltage is Fixed**
+👉 Assumption: **Sending End Voltage is Fixed**
 """)
 
 # ================= SIDEBAR =================
@@ -36,7 +36,7 @@ P = st.sidebar.number_input("Load Power (MW)", value=50.0)
 pf = st.sidebar.slider("Power Factor", 0.5, 1.0, 0.8)
 pf_type = st.sidebar.selectbox("PF Type", ["Lagging", "Leading"])
 
-# ================= PARAMETERS =================
+# ================= NETWORK PARAMETERS =================
 Z = complex(R_per_km, X_per_km) * length
 Y = 1j * 2 * np.pi * f * (C_per_km * 1e-6) * length
 
@@ -50,11 +50,12 @@ if pf_type == "Lagging":
 else:
     Ir = Ir_mag * np.exp(1j * angle)
 
+# ================= REGULATION =================
 def regulation(Vs, Vr):
     return (abs(Vs) - abs(Vr)) / abs(Vr) * 100
 
 
-# ================= CIRCUIT DIAGRAM FUNCTIONS =================
+# ================= CIRCUIT DIAGRAMS =================
 def short_line_diagram():
     d = schemdraw.Drawing()
 
@@ -63,11 +64,10 @@ def short_line_diagram():
     d += elm.Resistor().label("R")
     d += elm.Inductor().label("jX")
     d += elm.Line().right()
-    d += elm.Dot()
-    d += elm.Line().right()
-    d += elm.Load().label("Vr")
+    d += elm.Box().label("Load (Vr)")
 
     return d
+
 
 def medium_line_diagram():
     d = schemdraw.Drawing()
@@ -75,7 +75,6 @@ def medium_line_diagram():
     d += elm.SourceSin().label("Vs")
     d += elm.Line().right()
 
-    # shunt capacitor
     d.push()
     d += elm.Capacitor().down().label("Y/2")
     d += elm.Ground()
@@ -90,9 +89,10 @@ def medium_line_diagram():
     d.pop()
 
     d += elm.Line().right()
-    d += elm.Load().label("Vr")
+    d += elm.Box().label("Load (Vr)")
 
     return d
+
 
 def long_line_diagram():
     d = schemdraw.Drawing()
@@ -109,20 +109,17 @@ def long_line_diagram():
         d.pop()
 
     d += elm.Line().right()
-    d += elm.Load().label("Vr")
+    d += elm.Box().label("Load (Vr)")
 
     return d
 
 
-# ================= MAIN =================
+# ================= SIMULATION =================
 if st.button("🚀 Run Simulation"):
 
     col1, col2, col3 = st.columns(3)
 
     # ================================================= SHORT LINE
-    A_s = 1
-    B_s = Z
-
     Vr_s = Vs_phase - Ir * Z
     Vr_s_kV = abs(Vr_s * np.sqrt(3)) / 1000
     reg_s = regulation(Vs_phase, Vr_s)
@@ -131,7 +128,6 @@ if st.button("🚀 Run Simulation"):
         st.markdown("### 🔹 Short Line")
         st.metric("Vr (kV)", f"{Vr_s_kV:.2f}")
         st.metric("Regulation (%)", f"{reg_s:.2f}")
-
         st.pyplot(short_line_diagram().draw().fig)
 
     # ================================================= MEDIUM LINE
@@ -148,7 +144,6 @@ if st.button("🚀 Run Simulation"):
         st.markdown("### 🔸 Medium Line (π Model)")
         st.metric("Vr (kV)", f"{Vr_m_kV:.2f}")
         st.metric("Regulation (%)", f"{reg_m:.2f}")
-
         st.pyplot(medium_line_diagram().draw().fig)
 
     # ================================================= LONG LINE
@@ -167,7 +162,6 @@ if st.button("🚀 Run Simulation"):
         st.markdown("### 🔺 Long Line")
         st.metric("Vr (kV)", f"{Vr_l_kV:.2f}")
         st.metric("Regulation (%)", f"{reg_l:.2f}")
-
         st.pyplot(long_line_diagram().draw().fig)
 
     # ================= INTERPRETATION =================
@@ -176,15 +170,16 @@ if st.button("🚀 Run Simulation"):
 
     st.write("""
 🔹 Short Line → Neglects capacitance  
-🔸 Medium Line → Uses lumped π model  
+🔸 Medium Line → π model with shunt admittance  
 🔺 Long Line → Distributed parameter model  
 
-✔ As length increases:
-- Capacitance effect increases  
-- Voltage regulation changes significantly  
-- Ferranti effect may appear in long lines  
+✔ As line length increases:
+- Capacitance effect becomes significant  
+- Voltage regulation changes  
+- Long line model becomes necessary  
 """)
 
-    st.success("Simulation Completed")
+    st.success("Simulation Completed Successfully ✅")
+
 else:
     st.info("Click 'Run Simulation' to view results")
