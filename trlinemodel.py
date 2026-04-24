@@ -66,7 +66,7 @@ def short_line_circuit():
     d += elm.Resistor().label("Load")
     d += elm.Line().left(12)
     d += elm.Line().up(1)
-    d += elm.Label().at((0, -2)).label("Short Transmission Line Model")
+    d += elm.Label().at((2, -2)).label("Short Transmission Line Model")
     return d
 
 
