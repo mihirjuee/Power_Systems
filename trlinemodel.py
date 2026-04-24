@@ -123,7 +123,7 @@ def long_line_circuit():
 
     # Load
     d += elm.Resistor().label("Load (Vr)")
-
+    d += elm.Line().left(12)
     return d
 
 
@@ -204,4 +204,4 @@ if st.button("🚀 Run Analysis"):
     st.success("Analysis Completed ✅")
 
 else:
-    st.info("Click 'TO Run Analysis'")
+    st.info("Click 'Above'")
