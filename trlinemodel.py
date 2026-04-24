@@ -79,7 +79,7 @@ def medium_line_circuit():
     # shunt at sending end
     d.push()
     d += elm.Capacitor().down().label("Y/2")
-    d += elm.Ground()
+    #d += elm.Ground()
     d.pop()
 
     d += elm.Resistor().label("R")
@@ -88,12 +88,12 @@ def medium_line_circuit():
     # shunt at receiving end
     d.push()
     d += elm.Capacitor().down().label("Y/2")
-    d += elm.Ground()
+    #d += elm.Ground()
     d.pop()
 
     d += elm.Line().right()
     d += elm.Dot()
-    d += elm.Line().right()
+    d += elm.Line().down()
     d += elm.Resistor().label("Load")
 
     return d
