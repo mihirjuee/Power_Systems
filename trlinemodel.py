@@ -123,7 +123,8 @@ def long_line_circuit():
 
     # Load
     d += elm.Resistor().label("Load (Vr)")
-    d += elm.Line().left(12)
+    d += elm.Line().down()
+    d += elm.Line().left(24)
     return d
 
 
