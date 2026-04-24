@@ -93,7 +93,7 @@ def medium_line_circuit():
 
     d += elm.Line().right()
     #d += elm.Dot()
-    d += elm.Line().down(0.18)
+    d += elm.Line().down(0.15)
     d += elm.Resistor().label("Load")
     d += elm.Line().left(12)
     return d
