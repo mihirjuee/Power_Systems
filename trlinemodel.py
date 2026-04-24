@@ -62,9 +62,10 @@ def short_line_circuit():
     d += elm.Inductor().label("jX")
     d += elm.Line().right()
     d += elm.Dot()
-    d += elm.Line().down()
+    d += elm.Line().down(1)
     d += elm.Resistor().label("Load")
-
+    d += elm.Line().left(3)
+    d += elm.Line().up(1)
     return d
 
 
