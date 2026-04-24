@@ -61,7 +61,7 @@ def short_line_circuit():
     d += elm.Resistor().label("R")
     d += elm.Inductor().label("jX")
     d += elm.Line().right()
-    d += elm.Dot()
+    #d += elm.Dot()
     d += elm.Line().down(1)
     d += elm.Resistor().label("Load")
     d += elm.Line().left(12)
@@ -92,10 +92,10 @@ def medium_line_circuit():
     d.pop()
 
     d += elm.Line().right()
-    d += elm.Dot()
-    d += elm.Line().down(0.25)
+    #d += elm.Dot()
+    d += elm.Line().down(0.2)
     d += elm.Resistor().label("Load")
-
+    d += elm.Line().left(13)
     return d
 
 
