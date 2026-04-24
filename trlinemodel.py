@@ -5,7 +5,94 @@ import numpy as np
 st.set_page_config(page_title="Transmission Line Comparison", layout="centered")
 
 st.title("⚡ Transmission Line Modeling Comparison (ABCD Based)")
+import schemdraw
+import schemdraw.elements as elm
+import matplotlib.pyplot as plt
 
+st.subheader("📐 Transmission Line Models")
+
+tab1, tab2, tab3 = st.tabs(["Short Line", "Medium (π)", "Long Line"])
+
+# ================= SHORT LINE =================
+with tab1:
+    st.markdown("### 🔹 Short Transmission Line Model")
+
+    d = schemdraw.Drawing()
+
+    d += elm.SourceSin().label("Vs")
+    d += elm.Line().right()
+    d += elm.Resistor().label("R")
+    d += elm.Inductor().label("jX")
+    d += elm.Line().right()
+    d += elm.Load().label("Load (Vr)")
+
+    fig = d.draw()
+    st.pyplot(fig)
+
+
+# ================= MEDIUM LINE (PI MODEL) =================
+with tab2:
+    st.markdown("### 🔸 Medium Transmission Line (π Model)")
+
+    d = schemdraw.Drawing()
+
+    d += elm.SourceSin().label("Vs")
+    d += elm.Line().right()
+
+    # Shunt capacitance (sending end)
+    d.push()
+    d += elm.Capacitor().down().label("Y/2")
+    d += elm.Ground()
+    d.pop()
+
+    # Series impedance
+    d += elm.Resistor().label("R")
+    d += elm.Inductor().label("jX")
+
+    # Shunt capacitance (receiving end)
+    d.push()
+    d += elm.Capacitor().down().label("Y/2")
+    d += elm.Ground()
+    d.pop()
+
+    d += elm.Line().right()
+    d += elm.Load().label("Load (Vr)")
+
+    fig = d.draw()
+    st.pyplot(fig)
+
+
+# ================= LONG LINE =================
+with tab3:
+    st.markdown("### 🔺 Long Transmission Line Model")
+
+    st.write("""
+This model uses **distributed parameters**:
+- Resistance (R), Inductance (L)
+- Capacitance (C), Conductance (G)
+
+Instead of lumped elements, they are spread continuously along the line.
+""")
+
+    d = schemdraw.Drawing()
+
+    d += elm.SourceSin().label("Vs")
+
+    # Repeated sections (to show distributed nature)
+    for _ in range(3):
+        d += elm.Resistor().label("RΔx")
+        d += elm.Inductor().label("LΔx")
+
+        d.push()
+        d += elm.Capacitor().down().label("CΔx")
+        d += elm.Ground()
+        d.pop()
+
+    d += elm.Line().right()
+    d += elm.Load().label("Vr")
+
+    fig = d.draw()
+    st.pyplot(fig)
 st.markdown("""
 ### Compare Transmission Line Models
 - Short Line (< 80 km)
