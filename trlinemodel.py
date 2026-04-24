@@ -97,6 +97,7 @@ def medium_line_circuit():
     d += elm.Line().down(0.06)
     d += elm.Resistor().label("Load")
     d += elm.Line().left(12)
+    d += elm.Label().at((6, -2)).label("Medium Transmission Line Model")
     return d
 
 
