@@ -143,7 +143,7 @@ def long_vr():
 # ================= RUN =================
 if st.button("🚀 Run Analysis"):
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     # SHORT
     Vr_s = short_vr()
@@ -165,14 +165,20 @@ if st.button("🚀 Run Analysis"):
         st.metric("Regulation (%)", f"{reg_m:.2f}")
         st.pyplot(medium_line_circuit().draw().fig)
 
-    # LONG
+    # ================= LONG LINE (FULL WIDTH BELOW) =================
+    st.markdown("---")
+    st.subheader("🔺 Long Transmission Line (Distributed Model)")
+
     Vr_l = long_vr()
     reg_l = regulation(Vs_phase, Vr_l)
 
-    with col3:
-        st.markdown("### 🔺 Long Line")
+    colA, colB = st.columns([1, 2])
+
+    with colA:
         st.metric("Vr (kV)", f"{abs(Vr_l*np.sqrt(3))/1000:.2f}")
         st.metric("Regulation (%)", f"{reg_l:.2f}")
+
+    with colB:
         st.pyplot(long_line_circuit().draw().fig)
 
     # ================= INTERPRETATION =================
@@ -187,7 +193,7 @@ if st.button("🚀 Run Analysis"):
 👉 As length increases:
 - Voltage drop increases  
 - Charging current increases  
-- Long line may show Ferranti effect
+- Long line shows Ferranti effect at light load
 """)
 
     st.success("Analysis Completed ✅")
