@@ -6,7 +6,7 @@ import schemdraw.elements as elm
 # ================= PAGE =================
 st.set_page_config(page_title="Transmission Line Case 1", layout="centered")
 
-st.title("⚡ Transmission Line Analysis (Case 1: Vs Fixed)")
+st.title("⚡ Transmission Line Analysis ( Vs Fixed)")
 
 st.markdown("""
 ### 🔹 Sending End Voltage Fixed (Vs)
