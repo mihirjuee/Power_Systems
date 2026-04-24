@@ -64,7 +64,8 @@ def short_line_diagram():
     d += elm.Resistor().label("R")
     d += elm.Inductor().label("jX")
     d += elm.Line().right()
-    d += elm.Box().label("Load (Vr)")
+
+    d += elm.Resistor().label("Load (Vr)")  # FIXED
 
     return d
 
@@ -89,7 +90,8 @@ def medium_line_diagram():
     d.pop()
 
     d += elm.Line().right()
-    d += elm.Box().label("Load (Vr)")
+
+    d += elm.Resistor().label("Load (Vr)")  # FIXED
 
     return d
 
@@ -109,7 +111,8 @@ def long_line_diagram():
         d.pop()
 
     d += elm.Line().right()
-    d += elm.Box().label("Load (Vr)")
+
+    d += elm.Resistor().label("Load (Vr)")  # FIXED
 
     return d
 
