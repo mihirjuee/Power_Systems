@@ -139,7 +139,7 @@ def long_vr():
 
 
 # ================= RUN =================
-if st.button("🚀 Run Case 1 Analysis"):
+if st.button("🚀 Run Analysis"):
 
     col1, col2, col3 = st.columns(3)
 
