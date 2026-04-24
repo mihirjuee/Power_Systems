@@ -115,7 +115,7 @@ def long_line_circuit():
         # Shunt capacitance
         d.push()
         d += elm.Capacitor().down().label("CΔx")
-        d += elm.Ground()
+        #d += elm.Ground()
         d.pop()
 
         # spacing between sections
@@ -124,7 +124,7 @@ def long_line_circuit():
     # Load
     d += elm.Resistor().label("Load (Vr)")
     d += elm.Line().down()
-    d += elm.Line().left(24)
+    d += elm.Line().left(30)
     return d
 
 
