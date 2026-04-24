@@ -108,16 +108,21 @@ def long_line_circuit():
     d += elm.SourceSin().label("Vs")
 
     for _ in range(3):
-        d += elm.Resistor().label("RΔx")
-        d += elm.Inductor().label("LΔx")
+        # Series impedance
+        d += elm.Resistor().right().label("RΔx")
+        d += elm.Inductor().right().label("LΔx")
 
+        # Shunt capacitance
         d.push()
         d += elm.Capacitor().down().label("CΔx")
         d += elm.Ground()
         d.pop()
 
-    d += elm.Line().right()
-    d += elm.Resistor().label("Load")
+        # spacing between sections
+        d += elm.Line().right()
+
+    # Load
+    d += elm.Resistor().label("Load (Vr)")
 
     return d
 
@@ -199,4 +204,4 @@ if st.button("🚀 Run Analysis"):
     st.success("Analysis Completed ✅")
 
 else:
-    st.info("Click 'Run Case 1 Analysis'")
+    st.info("Click 'TO Run Analysis'")
