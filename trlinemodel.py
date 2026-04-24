@@ -4,7 +4,7 @@ import schemdraw
 import schemdraw.elements as elm
 
 # ================= PAGE =================
-st.set_page_config(page_title="Transmission Line Case 1", layout="centered")
+st.set_page_config(page_title="Transmission Line Case 1", page_icon="logo.png", layout="centered")
 
 st.title("⚡ Transmission Line Analysis ( Vs Fixed)")
 
