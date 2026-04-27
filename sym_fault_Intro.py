@@ -76,7 +76,7 @@ fig, ax = plt.subplots(figsize=(8, 2))
 d = schemdraw.Drawing(canvas=ax)
 
 # 3. Build the circuit elements
-d += (V1 := elm.SourceSin().label("Source", loc="up"))
+d += (V1 := elm.SourceSin().label("Source", loc="top"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
 d += elm.Line().down()
