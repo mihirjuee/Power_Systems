@@ -80,8 +80,8 @@ d += (V1 := elm.SourceSin().label("Source", loc="top"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
 d += elm.Line().down()
-d += elm.Line().left(4)
-d += elm.Line().up(1)
+d += elm.Line().left(6)
+d += elm.Line().up(0.1)
 
 # 4. Draw the schematic to the provided axis
 d.draw()
