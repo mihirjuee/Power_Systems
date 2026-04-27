@@ -58,24 +58,32 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
-import io # Ensure this is imported at the top
+
+import io
+import schemdraw
+import schemdraw.elements as elm
 
 # ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
 
-# 1. Create the drawing object
 d = schemdraw.Drawing()
+
 d += (V := elm.SourceSin().label("V(t)"))
-d += (R_el := elm.Resistor().label(f"{R}Ω"))
-d += (L_el := elm.Inductor().label(f"{L}H"))
-d += (S := elm.Switch().down().label("Fault"))
+d += elm.Resistor().right().label(f"{R}Ω")
+d += elm.Inductor().right().label(f"{L}H")
+
+d += elm.Line().down()
+d += elm.Switch().label("Fault").down()
 d += elm.Ground()
+
 d += elm.Line().left().tox(V.start)
 d += elm.Line().up().toy(V.start)
 
-# 2. Save to a memory buffer as an image instead of passing the figure object
-buf = io.BytesIO()
-d.save(buf, format='png')
+# ---- SAFE RENDER ----
+img = d.draw()
 
-# 3. Display using st.image
-st.image(buf.getvalue())
+buf = io.BytesIO()
+buf.write(img.get_imagedata('png'))
+buf.seek(0)
+
+st.image(buf)
