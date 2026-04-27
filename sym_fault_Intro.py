@@ -58,11 +58,11 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
+import io
 
 st.subheader("🔌 Circuit Diagram")
 
-# Force matplotlib backend
-d = schemdraw.Drawing(backend='matplotlib')
+d = schemdraw.Drawing()
 
 # Build circuit
 d += (V := elm.SourceSin().label("V(t)"))
@@ -77,10 +77,12 @@ d += elm.Ground()
 d += elm.Line().left().tox(V.start)
 d += elm.Line().up().toy(V.start)
 
-# Draw using matplotlib axis
-fig, ax = plt.subplots()
-d.draw(ax=ax)
-ax.axis('off')
+# ---- KEY FIX ----
+img = d.draw()              # draw the circuit
 
-# Display safely
-st.pyplot(fig)
+# Convert to PNG bytes safely
+buf = io.BytesIO()
+img.get_imagedata('png').save(buf)   # <-- works across versions
+buf.seek(0)
+
+st.image(buf)
