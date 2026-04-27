@@ -79,8 +79,7 @@ d = schemdraw.Drawing(canvas=ax)
 d += (V1 := elm.SourceSin().label("Source", loc="left"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
-d += elm.Line().left().tox(V1.start)
-d += elm.Line().up().toy(V1.start)
+
 
 # 4. Draw the schematic to the provided axis
 d.draw()
