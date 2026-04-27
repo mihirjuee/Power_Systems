@@ -58,28 +58,29 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
-import io
-import schemdraw
-import schemdraw.elements as elm
-import streamlit as st
-
+# ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Schematic")
 
-# 1. Setup the drawing
+# 1. Initialize the drawing object
 d = schemdraw.Drawing()
+
+# 2. Build the circuit elements
 d += (V1 := elm.SourceSin().label("Source", loc="left"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
-
-# Return path
 d += elm.Line().left().tox(V1.start)
-d += elm.Line().up().to(V1.start)
+d += elm.Line().up().toy(V1.start)
 
-# 2. Render to a buffer to avoid st.pyplot/Matplotlib backend conflicts
+# 3. Render to a matplotlib figure object
+fig = d.draw(show=False) 
+
+# 4. Save the figure to a buffer
 buf = io.BytesIO()
-d.save(buf, format='png')
+fig.savefig(buf, format='png', bbox_inches='tight')
 buf.seek(0)
 
-# 3. Display the image
-st.image(buf, caption="RL Circuit Fault Analysis Diagram", use_container_width=True)
-st.image(buf, use_container_width=True)
+# 5. Display the image
+st.image(buf, caption="RL Circuit Fault Analysis", use_container_width=True)
+
+# 6. Clean up: Close the figure to free memory
+plt.close(fig)
