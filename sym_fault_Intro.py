@@ -58,9 +58,13 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
+# ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
 
+# 1. Initialize the drawing
 d = schemdraw.Drawing()
+
+# 2. Build the circuit elements
 d += (V := elm.SourceSin().label("V(t)"))
 d += (R_el := elm.Resistor().label(f"{R}Ω"))
 d += (L_el := elm.Inductor().label(f"{L}H"))
@@ -69,4 +73,8 @@ d += elm.Ground()
 d += elm.Line().left().tox(V.start)
 d += elm.Line().up().toy(V.start)
 
-st.pyplot(d.draw())
+# 3. Create the Matplotlib figure explicitly
+fig_circuit = d.draw() 
+
+# 4. Pass the figure to Streamlit
+st.pyplot(fig_circuit)
