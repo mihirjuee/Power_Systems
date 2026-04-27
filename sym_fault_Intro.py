@@ -5,7 +5,7 @@ import schemdraw
 import schemdraw.elements as elm
 
 # ================= PAGE CONFIG =================
-st.set_page_config(page_title="Symmetrical Fault Transient", layout="wide")
+st.set_page_config(page_title="Symmetrical Fault Transient",page_icon="logo.png", layout="wide")
 
 st.title("⚡ Symmetrical Fault Transient Analysis")
 
@@ -80,6 +80,8 @@ d += (V1 := elm.SourceSin().label("Source", loc="top"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
 d += elm.Line().down()
+d += elm.Line().left(4)
+d += elm.Line().up(1)
 
 # 4. Draw the schematic to the provided axis
 d.draw()
