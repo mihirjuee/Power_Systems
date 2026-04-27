@@ -77,7 +77,7 @@ d += elm.Line().up().to(V1.start)
 img = d.draw()
 
 buf = io.BytesIO()
-buf.write(img.get_imagedata('png'))
+st.pyplot(d.draw())
 buf.seek(0)
 
 st.image(buf, use_container_width=True)
