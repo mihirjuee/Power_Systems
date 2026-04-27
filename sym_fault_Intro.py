@@ -67,7 +67,7 @@ d = schemdraw.Drawing(show=False)
 d += (V1 := elm.SourceSin().label("Source", loc="left"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
-d += (C1 := elm.Capacitor().right().label(f"{C_uF}μF"))
+
 
 # Return path
 d += elm.Line().down().at(C1.end).length(3)
