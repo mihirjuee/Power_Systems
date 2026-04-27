@@ -70,7 +70,6 @@ d += elm.Inductor().right().label(f"{L}H")
 
 
 # Return path
-d += elm.Line().down().at(C1.end).length(3)
 d += elm.Line().left().tox(V1.start)
 d += elm.Line().up().to(V1.start)
 
