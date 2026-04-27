@@ -83,7 +83,7 @@ d += elm.Inductor().right().label(f"{L}H")
 S = elm.Switch().right().label("Fault")
 d += S
 d += elm.Line().down()
-d += elm.Line().left(6)
+d += elm.Line().left(8)
 d += elm.Line().up(0.1)
 
 # 4. Draw the schematic to the provided axis
