@@ -58,37 +58,23 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
+# ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
 
-fig, ax = plt.subplots(figsize=(8, 3))
+d = schemdraw.Drawing()
 
-# Draw lines (circuit path)
-ax.plot([0, 1], [0, 0])   # Source to R
-ax.plot([1, 2], [0, 0])   # R to L
-ax.plot([2, 3], [0, 0])   # L to node
+# Define elements
+d += (V := elm.SourceSin().label("V(t)"))
+d += (R_el := elm.Resistor().label(f"{R} Ω"))
+d += (L_el := elm.Inductor().label(f"{L} H"))
+d += (S := elm.Switch().label("Fault").down())
+d += elm.Ground()
+d += elm.Line().left().tox(V.start)
+d += elm.Line().up().toy(V.start)
 
-# Down to fault
-ax.plot([3, 3], [0, -1])  # vertical line
-ax.plot([3, 2], [-1, -1]) # ground line
+# Render the drawing
+# We get the Matplotlib figure object from schemdraw
+fig_circuit = d.draw()
 
-# Close loop
-ax.plot([2, 0], [-1, -1])
-ax.plot([0, 0], [-1, 0])
-
-# Labels
-ax.text(0.2, 0.2, "V(t)")
-ax.text(1.2, 0.2, f"R = {R}Ω")
-ax.text(2.2, 0.2, f"L = {L}H")
-ax.text(3.05, -0.5, "Fault")
-
-# Ground symbol
-ax.plot([2, 2.2], [-1, -1])
-ax.plot([2.05, 2.15], [-1.1, -1.1])
-ax.plot([2.08, 2.12], [-1.2, -1.2])
-
-# Formatting
-ax.axis('off')
-ax.set_xlim(-0.5, 3.5)
-ax.set_ylim(-1.5, 1)
-
-st.pyplot(fig)
+# Display the figure in Streamlit
+st.pyplot(fig_circuit)
