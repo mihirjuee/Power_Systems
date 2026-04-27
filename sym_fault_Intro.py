@@ -15,7 +15,8 @@ st.sidebar.header("🔧 Input Parameters")
 V_rms = st.sidebar.number_input("Source Voltage (Vrms)", value=230.0)
 R = st.sidebar.number_input("Resistance (Ω)", value=1.0)
 L = st.sidebar.number_input("Inductance (H)", value=0.05)
-d += (S := elm.Switch().right().label("S"))
+S = elm.Switch().right().label("Fault")
+d += S
 f = st.sidebar.number_input("Frequency (Hz)", value=50.0)
 theta_deg = st.sidebar.slider("Fault Inception Angle (°)", 0, 180, 0)
 
