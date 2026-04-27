@@ -58,29 +58,39 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+import schemdraw
+import schemdraw.elements as elm
+import io  # <--- THIS IS THE MISSING PIECE
+
+# ================= PAGE CONFIG =================
+st.set_page_config(page_title="Symmetrical Fault Transient", layout="wide")
+
+# ... [Keep your existing sidebar and calculation logic here] ...
+
 # ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Schematic")
 
-# 1. Initialize the drawing object
+# 1. Initialize drawing
 d = schemdraw.Drawing()
-
-# 2. Build the circuit elements
 d += (V1 := elm.SourceSin().label("Source", loc="left"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
 d += elm.Line().left().tox(V1.start)
 d += elm.Line().up().toy(V1.start)
 
-# 3. Render to a matplotlib figure object
-fig = d.draw(show=False) 
+# 2. Render to Matplotlib figure
+fig = d.draw(show=False)
 
-# 4. Save the figure to a buffer
+# 3. Save to buffer (using the now-imported 'io')
 buf = io.BytesIO()
 fig.savefig(buf, format='png', bbox_inches='tight')
 buf.seek(0)
 
-# 5. Display the image
+# 4. Display
 st.image(buf, caption="RL Circuit Fault Analysis", use_container_width=True)
 
-# 6. Clean up: Close the figure to free memory
+# 5. Cleanup
 plt.close(fig)
