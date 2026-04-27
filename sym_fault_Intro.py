@@ -61,20 +61,21 @@ col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 # ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
 
+# 1. Create the drawing object
 d = schemdraw.Drawing()
 
-# Define elements
+# 2. Add elements
 d += (V := elm.SourceSin().label("V(t)"))
-d += (R_el := elm.Resistor().label(f"{R} Ω"))
-d += (L_el := elm.Inductor().label(f"{L} H"))
-d += (S := elm.Switch().label("Fault").down())
+d += (R_el := elm.Resistor().label(f"{R}Ω"))
+d += (L_el := elm.Inductor().label(f"{L}H"))
+d += (S := elm.Switch().down().label("Fault"))
 d += elm.Ground()
 d += elm.Line().left().tox(V.start)
 d += elm.Line().up().toy(V.start)
 
-# Render the drawing
-# We get the Matplotlib figure object from schemdraw
-fig_circuit = d.draw()
+# 3. FIX: Create the figure and pass it to st.pyplot correctly
+# We use d.get_imagedata('svg') or explicitly draw to a figure
+fig = d.draw(show=False) 
 
-# Display the figure in Streamlit
-st.pyplot(fig_circuit)
+# 4. Render
+st.pyplot(fig)
