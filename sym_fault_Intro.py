@@ -58,26 +58,27 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
-
 import io
-import schemdraw
-import schemdraw.elements as elm
-
-# ================= CIRCUIT DIAGRAM =================
+from PIL import Image
 st.subheader("🔌 Circuit Schematic")
-    d = schemdraw.Drawing(show=False)
-    # Using specific locs and labels to ensure stability
-    d += (V1 := elm.SourceSin().label("Source", loc="left"))
-    d += elm.Resistor().right().label(f"{R}Ω")
-    d += elm.Inductor().right().label(f"{L_mH}mH")
-    d += (C1 := elm.Capacitor().right().label(f"{C_uF}μF"))
-    
-    # Return path
-    d += elm.Line().down().at(C1.end).length(3)
-    d += elm.Line().left().tox(V1.start)
-    d += elm.Line().up().to(V1.start)
 
-    buf = io.BytesIO()
-    d.save(buf)
-    buf.seek(0)
-    st.image(Image.open(buf), use_container_width=True)
+d = schemdraw.Drawing(show=False)
+
+d += (V1 := elm.SourceSin().label("Source", loc="left"))
+d += elm.Resistor().right().label(f"{R}Ω")
+d += elm.Inductor().right().label(f"{L_mH}mH")
+d += (C1 := elm.Capacitor().right().label(f"{C_uF}μF"))
+
+# Return path
+d += elm.Line().down().at(C1.end).length(3)
+d += elm.Line().left().tox(V1.start)
+d += elm.Line().up().to(V1.start)
+
+# ---- SAFE RENDER ----
+img = d.draw()
+
+buf = io.BytesIO()
+buf.write(img.get_imagedata('png'))
+buf.seek(0)
+
+st.image(buf, use_container_width=True)
