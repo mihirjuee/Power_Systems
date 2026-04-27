@@ -58,31 +58,37 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
-import io
-
 st.subheader("🔌 Circuit Diagram")
 
-d = schemdraw.Drawing()
+fig, ax = plt.subplots(figsize=(8, 3))
 
-# Build circuit
-d += (V := elm.SourceSin().label("V(t)"))
-d += elm.Resistor().right().label(f"{R}Ω")
-d += elm.Inductor().right().label(f"{L}H")
+# Draw lines (circuit path)
+ax.plot([0, 1], [0, 0])   # Source to R
+ax.plot([1, 2], [0, 0])   # R to L
+ax.plot([2, 3], [0, 0])   # L to node
 
-d += elm.Line().down()
-d += elm.Switch().label("Fault").down()
-d += elm.Ground()
+# Down to fault
+ax.plot([3, 3], [0, -1])  # vertical line
+ax.plot([3, 2], [-1, -1]) # ground line
 
 # Close loop
-d += elm.Line().left().tox(V.start)
-d += elm.Line().up().toy(V.start)
+ax.plot([2, 0], [-1, -1])
+ax.plot([0, 0], [-1, 0])
 
-# ---- KEY FIX ----
-img = d.draw()              # draw the circuit
+# Labels
+ax.text(0.2, 0.2, "V(t)")
+ax.text(1.2, 0.2, f"R = {R}Ω")
+ax.text(2.2, 0.2, f"L = {L}H")
+ax.text(3.05, -0.5, "Fault")
 
-# Convert to PNG bytes safely
-buf = io.BytesIO()
-img.get_imagedata('png').save(buf)   # <-- works across versions
-buf.seek(0)
+# Ground symbol
+ax.plot([2, 2.2], [-1, -1])
+ax.plot([2.05, 2.15], [-1.1, -1.1])
+ax.plot([2.08, 2.12], [-1.2, -1.2])
 
-st.image(buf)
+# Formatting
+ax.axis('off')
+ax.set_xlim(-0.5, 3.5)
+ax.set_ylim(-1.5, 1)
+
+st.pyplot(fig)
