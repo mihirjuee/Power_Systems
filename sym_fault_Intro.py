@@ -80,10 +80,10 @@ d = schemdraw.Drawing(canvas=ax)
 d += (V1 := elm.SourceSin().label("Source", loc="top"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
-S = elm.Switch().right().label("Fault")
+S = elm.Switch().right().label("S")
 d += S
 d += elm.Line().down()
-d += elm.Line().left(8)
+d += elm.Line().left(9)
 d += elm.Line().up(0.1)
 
 # 4. Draw the schematic to the provided axis
