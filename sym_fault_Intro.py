@@ -58,11 +58,6 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
-import streamlit as st
-import numpy as np
-import matplotlib.pyplot as plt
-import schemdraw
-import schemdraw.elements as elm
 import io  # <--- THIS IS THE MISSING PIECE
 
 # ================= PAGE CONFIG =================
