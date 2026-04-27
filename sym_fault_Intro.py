@@ -58,18 +58,21 @@ col2.metric("Peak AC Current (A)", f"{Im:.2f}")
 col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
+st.subheader("🔌 Circuit Diagram")
+
+# 1. Initialize the drawing
 d = schemdraw.Drawing()
 
-d += elm.SourceSin().label("E")
-d += elm.Inductor().right().label("X''")
-d += elm.Inductor().right().label("X'")
-d += elm.Inductor().right().label("Xs")
-
-d += elm.Line().down()
-d += elm.Switch().label("Fault").down()
+# 2. Build the circuit elements
+d += (V := elm.SourceSin().label("V(t)"))
+d += (R_el := elm.Resistor().label(f"{R}Ω"))
+d += (L_el := elm.Inductor().label(f"{L}H"))
+d += (S := elm.Switch().down().label("Fault"))
 d += elm.Ground()
+d += elm.Line().left().tox(V.start)
+d += elm.Line().up().toy(V.start)
 
-d += elm.Line().left(6)
-
-# Render properly
-st.image(d.draw())
+# 3. Use st.pyplot to render the figure object created by d.draw()
+# Note: You must capture the figure to avoid displaying it twice
+fig = d.draw()
+st.pyplot(fig)
