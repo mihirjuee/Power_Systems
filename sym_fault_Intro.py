@@ -59,25 +59,27 @@ col3.metric("Initial DC Offset (A)", f"{i_dc[0]:.2f}")
 
 # ================= CIRCUIT DIAGRAM =================
 import io
-from PIL import Image
+import schemdraw
+import schemdraw.elements as elm
+import streamlit as st
+
 st.subheader("🔌 Circuit Schematic")
 
-d = schemdraw.Drawing(show=False)
-
+# 1. Setup the drawing
+d = schemdraw.Drawing()
 d += (V1 := elm.SourceSin().label("Source", loc="left"))
 d += elm.Resistor().right().label(f"{R}Ω")
 d += elm.Inductor().right().label(f"{L}H")
-
 
 # Return path
 d += elm.Line().left().tox(V1.start)
 d += elm.Line().up().to(V1.start)
 
-# ---- SAFE RENDER ----
-img = d.draw()
-
+# 2. Render to a buffer to avoid st.pyplot/Matplotlib backend conflicts
 buf = io.BytesIO()
-st.pyplot(d.draw())
+d.save(buf, format='png')
 buf.seek(0)
 
+# 3. Display the image
+st.image(buf, caption="RL Circuit Fault Analysis Diagram", use_container_width=True)
 st.image(buf, use_container_width=True)
