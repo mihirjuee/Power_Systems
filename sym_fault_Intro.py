@@ -63,20 +63,25 @@ st.subheader("🔌 Circuit Diagram")
 
 import schemdraw
 import schemdraw.elements as elm
+import io
 
-# 1. Initialize the drawing
 d = schemdraw.Drawing()
 
-# 2. Build the circuit elements
 d += (V := elm.SourceSin().label("V(t)"))
-d += (R_el := elm.Resistor().right().label(f"{R}Ω"))
-d += (L_el := elm.Inductor().right().label(f"{L}H"))
-d += (S := elm.Switch().down().label("Fault"))
+d += elm.Resistor().right().label(f"{R}Ω")
+d += elm.Inductor().right().label(f"{L}H")
+
+d += elm.Line().down()
+d += elm.Switch().label("Fault").down()
 d += elm.Ground()
 
-# Close loop properly
 d += elm.Line().left().tox(V.start)
 d += elm.Line().up().toy(V.start)
 
-# 3. Render correctly
-st.image(d.draw())
+# Convert to image buffer
+fig = d.draw()
+buf = io.BytesIO()
+fig.save(buf, format="png")
+buf.seek(0)
+
+st.image(buf)
