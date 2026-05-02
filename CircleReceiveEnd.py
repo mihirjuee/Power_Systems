@@ -39,17 +39,74 @@ st.title("⚡ Receiving End Circle Diagram of Transmission Line")
 # ----------------------------------------------------------------------
 st.sidebar.header("🔧 Transmission Line Parameters")
 
-Vr = st.sidebar.slider("Receiving End Voltage |Vr| (kV)", 50.0, 400.0, 220.0)
+Vr = st.sidebar.number_input(
+    "Receiving End Voltage |Vr| (kV)",
+    min_value=0.0,
+    max_value=1000.0,
+    value=220.0,
+    step=1.0,
+    format="%.2f"
+)
 
-A_mag = st.sidebar.slider("A Magnitude", 0.8, 1.2, 1.0)
-A_ang = st.sidebar.slider("A Angle (deg)", -20.0, 20.0, 0.0)
+st.sidebar.subheader("📘 ABCD Parameters")
 
-B_mag = st.sidebar.slider("B Magnitude (Ω)", 10.0, 300.0, 80.0)
-B_ang = st.sidebar.slider("B Angle (deg)", 60.0, 100.0, 80.0)
+A_mag = st.sidebar.number_input(
+    "A Magnitude",
+    min_value=0.0,
+    max_value=5.0,
+    value=1.0,
+    step=0.01,
+    format="%.4f"
+)
 
-Ir = st.sidebar.slider("Receiving End Current |Ir| (A)", 10.0, 1000.0, 300.0)
+A_ang = st.sidebar.number_input(
+    "A Angle (deg)",
+    min_value=-180.0,
+    max_value=180.0,
+    value=0.0,
+    step=0.1,
+    format="%.2f"
+)
 
+B_mag = st.sidebar.number_input(
+    "B Magnitude (Ω)",
+    min_value=0.0,
+    max_value=5000.0,
+    value=80.0,
+    step=1.0,
+    format="%.4f"
+)
+
+B_ang = st.sidebar.number_input(
+    "B Angle (deg)",
+    min_value=-180.0,
+    max_value=180.0,
+    value=80.0,
+    step=0.1,
+    format="%.2f"
+)
+
+
+S_MVA = st.sidebar.number_input(
+    "Receiving End Apparent Power (MVA)",
+    min_value=0.0,
+    max_value=5000.0,
+    value=100.0,
+    step=1.0,
+    format="%.2f"
+)
 pf = st.sidebar.slider("Receiving End Power Factor", 0.0, 1.0, 0.8)
+# ----------------------------------------------------------------------
+# CONVERT POWER TO CURRENT
+# 3-phase formula:
+# S = √3 × V × I
+# I = S / (√3 × V)
+# Vr in kV, S in MVA → I in A
+# ----------------------------------------------------------------------
+
+Ir = (S_MVA * 1e6) / (np.sqrt(3) * Vr * 1e3)
+
+
 
 mode = st.sidebar.radio("Load Type", ["Lagging", "Leading"])
 
