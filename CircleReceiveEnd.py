@@ -1,13 +1,15 @@
 # ======================================================================
 # RECEIVING END CIRCLE DIAGRAM OF TRANSMISSION LINE
-# THEORETICALLY CORRECT RECEIVING END POWER CIRCLE
-# FIX:
-# ✅ Correct centre = A|Vr|² / |B|
-# ✅ Origin and centre are different
-# ✅ Proper power circle geometry
-# ✅ Origin → Centre
-# ✅ Origin → Operating Point
-# ✅ Centre → Operating Point
+# COMPLETE ADVANCED VERSION
+# FEATURES:
+# ✅ Correct receiving-end power circle
+# ✅ True theoretical centre = -(3AVr²/B)
+# ✅ Origin / Centre / Operating Point vectors
+# ✅ Sending end voltage & current
+# ✅ Sending end power
+# ✅ Sending end power factor
+# ✅ Load angle
+# ✅ Voltage regulation
 # ======================================================================
 
 import streamlit as st
@@ -62,7 +64,7 @@ A_mag = st.sidebar.number_input(
 )
 
 A_ang = st.sidebar.number_input(
-    "A Angle (deg)",
+    "A Angle α (deg)",
     min_value=-180.0,
     max_value=180.0,
     value=0.0,
@@ -114,6 +116,7 @@ mode = st.sidebar.radio(
 # ----------------------------------------------------------------------
 Vr_phase = (Vr * 1e3) / np.sqrt(3)
 
+# Line current from 3-phase apparent power
 Ir = (S_MVA * 1e6) / (np.sqrt(3) * Vr * 1e3)
 
 # ----------------------------------------------------------------------
@@ -121,6 +124,14 @@ Ir = (S_MVA * 1e6) / (np.sqrt(3) * Vr * 1e3)
 # ----------------------------------------------------------------------
 A = A_mag * np.exp(1j * np.radians(A_ang))
 B = B_mag * np.exp(1j * np.radians(B_ang))
+
+# Assume symmetrical line
+D = A
+
+if abs(B) > 1e-12:
+    C = (A * D - 1) / B
+else:
+    C = 0 + 0j
 
 Vr_phasor = Vr_phase + 0j
 
@@ -132,11 +143,12 @@ else:
     Ir_phasor = Ir * np.exp(1j * phi)
 
 # ----------------------------------------------------------------------
-# SENDING END VOLTAGE
+# SENDING END VOLTAGE & CURRENT
 # ----------------------------------------------------------------------
 Vs = A * Vr_phasor + B * Ir_phasor
+Is = C * Vr_phasor + D * Ir_phasor
 
-Vs_mag = np.abs(Vs) * np.sqrt(3) / 1000
+Vs_mag = np.abs(Vs) * np.sqrt(3) / 1000   # kV
 
 # ----------------------------------------------------------------------
 # RECEIVING END POWER
@@ -145,6 +157,34 @@ S_r = 3 * Vr_phasor * np.conj(Ir_phasor)
 
 P_r = np.real(S_r) / 1e6
 Q_r = np.imag(S_r) / 1e6
+S_r_mag = np.abs(S_r) / 1e6
+
+# ----------------------------------------------------------------------
+# SENDING END POWER
+# ----------------------------------------------------------------------
+S_s = 3 * Vs * np.conj(Is)
+
+P_s = np.real(S_s) / 1e6
+Q_s = np.imag(S_s) / 1e6
+S_s_mag = np.abs(S_s) / 1e6
+
+# Sending PF
+if S_s_mag > 0:
+    pf_s = abs(P_s) / S_s_mag
+else:
+    pf_s = 0
+
+pf_s_type = "Lagging" if Q_s >= 0 else "Leading"
+
+# ----------------------------------------------------------------------
+# LOAD ANGLE
+# ----------------------------------------------------------------------
+load_angle = np.degrees(np.angle(Vs) - np.angle(Vr_phasor))
+
+# ----------------------------------------------------------------------
+# VOLTAGE REGULATION
+# ----------------------------------------------------------------------
+VR_percent = ((Vs_mag - Vr) / Vr) * 100
 
 # ----------------------------------------------------------------------
 # TRUE RECEIVING END CIRCLE CENTRE
@@ -164,7 +204,7 @@ center_y = -K_MW * np.sin(beta)
 radius = np.sqrt((P_r - center_x) ** 2 + (Q_r - center_y) ** 2)
 
 # ----------------------------------------------------------------------
-# CIRCLE LOCUS USING TRUE CENTRE
+# CIRCLE LOCUS
 # ----------------------------------------------------------------------
 theta = np.linspace(0, 2 * np.pi, 1000)
 
@@ -172,17 +212,12 @@ P_circle = center_x + radius * np.cos(theta)
 Q_circle = center_y + radius * np.sin(theta)
 
 # ----------------------------------------------------------------------
-# VOLTAGE REGULATION
-# ----------------------------------------------------------------------
-VR_percent = ((Vs_mag - Vr) / Vr) * 100
-
-# ----------------------------------------------------------------------
 # LAYOUT
 # ----------------------------------------------------------------------
 col1, col2 = st.columns([1.5, 1])
 
 # ======================================================================
-# CIRCLE DIAGRAM
+# RECEIVING END CIRCLE DIAGRAM
 # ======================================================================
 with col1:
     st.subheader("📈 Receiving End Circle Diagram")
@@ -204,8 +239,8 @@ with col1:
         0,
         color="black",
         marker="x",
-        s=120,
-        zorder=7,
+        s=140,
+        zorder=8,
         label="Origin"
     )
 
@@ -214,18 +249,18 @@ with col1:
         center_x,
         center_y,
         color="purple",
-        s=100,
-        zorder=7,
+        s=120,
+        zorder=8,
         label="Centre"
     )
 
-    # Operating Point
+    # Operating point
     ax.scatter(
         P_r,
         Q_r,
         color="red",
         s=120,
-        zorder=8,
+        zorder=9,
         label="Operating Point"
     )
 
@@ -315,6 +350,7 @@ with col2:
 
     fig2, ax2 = plt.subplots(figsize=(7, 7))
 
+    # Vr
     ax2.arrow(
         0, 0,
         np.real(Vr_phasor) / 1000,
@@ -323,6 +359,7 @@ with col2:
         length_includes_head=True
     )
 
+    # Vs
     ax2.arrow(
         0, 0,
         np.real(Vs) / 1000,
@@ -331,8 +368,17 @@ with col2:
         length_includes_head=True
     )
 
-    ax2.text(np.real(Vr_phasor)/1000, np.imag(Vr_phasor)/1000, "Vr")
-    ax2.text(np.real(Vs)/1000, np.imag(Vs)/1000, "Vs")
+    ax2.text(
+        np.real(Vr_phasor) / 1000,
+        np.imag(Vr_phasor) / 1000,
+        "Vr"
+    )
+
+    ax2.text(
+        np.real(Vs) / 1000,
+        np.imag(Vs) / 1000,
+        "Vs"
+    )
 
     ax2.axhline(0, linestyle="--")
     ax2.axvline(0, linestyle="--")
@@ -348,7 +394,7 @@ with col2:
     st.pyplot(fig2)
 
 # ======================================================================
-# RESULTS
+# RESULTS PANEL
 # ======================================================================
 st.divider()
 st.subheader("📊 Calculated Results")
@@ -360,23 +406,62 @@ r2.metric("Receiving Reactive Power", f"{Q_r:.2f} MVAR")
 r3.metric("Sending End Voltage", f"{Vs_mag:.2f} kV")
 r4.metric("Voltage Regulation", f"{VR_percent:.2f} %")
 
+s1, s2, s3, s4 = st.columns(4)
+
+s1.metric("Sending Real Power", f"{P_s:.2f} MW")
+s2.metric("Sending Reactive Power", f"{Q_s:.2f} MVAR")
+s3.metric("Sending PF", f"{pf_s:.3f} ({pf_s_type})")
+s4.metric("Load Angle δ", f"{load_angle:.2f}°")
+
 # ======================================================================
 # THEORY
 # ======================================================================
 st.divider()
-st.subheader("📘 Circle Theory")
+st.subheader("📘 Key Formula")
 
 st.markdown("""
+### Sending End Voltage:
+Vs = A·Vr + B·Ir
+
+### Sending End Current:
+Is = C·Vr + D·Ir
+
 ### Receiving End Circle Centre:
 Centre = -(3 A Vr² / B)
 
-### Radius:
-Radius = Distance from Centre to Operating Point
+### Load Angle:
+δ = ∠Vs - ∠Vr
+""")
 
-### Key Vectors:
-- Origin → Centre
-- Origin → Operating Point
-- Centre → Operating Point
+# ======================================================================
+# STATUS
+# ======================================================================
+if VR_percent > 0:
+    st.warning("⚠️ Positive Regulation")
+elif VR_percent < 0:
+    st.success("✅ Negative Regulation / Ferranti Effect")
+else:
+    st.info("ℹ️ Zero Regulation")
+
+# ======================================================================
+# INSIGHTS
+# ======================================================================
+with st.expander("💡 Engineering Insight"):
+    st.write("""
+### Origin:
+Zero power reference
+
+### Centre:
+Theoretical power circle centre
+
+### Operating Point:
+Actual load condition
+
+### Sending Power:
+Always includes transmission losses
+
+### Load Angle:
+Shows angular displacement between sending and receiving voltages
 """)
 
 # ======================================================================
