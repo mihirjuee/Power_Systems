@@ -1,13 +1,12 @@
 # ======================================================================
 # RECEIVING END CIRCLE DIAGRAM OF TRANSMISSION LINE
-# Streamlit App
-# Features:
-# ✅ ABCD parameter inputs
-# ✅ Receiving-end circle diagram
-# ✅ Operating point
-# ✅ Lagging / Leading PF
-# ✅ Voltage regulation
-# ✅ Real / Reactive power visualization
+# CORRECTED VERSION
+# FIXES:
+# ✅ Proper 3-phase power calculations
+# ✅ Per-phase ABCD model
+# ✅ Correct MW / MVAR scaling
+# ✅ Accurate sending voltage
+# ✅ Proper voltage regulation
 # ======================================================================
 
 import streamlit as st
@@ -23,7 +22,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Gradient background
+# Background
 st.markdown("""
 <style>
 [data-testid="stAppViewContainer"] {
@@ -35,19 +34,21 @@ st.markdown("""
 st.title("⚡ Receiving End Circle Diagram of Transmission Line")
 
 # ----------------------------------------------------------------------
-# SIDEBAR INPUTS
+# SIDEBAR
 # ----------------------------------------------------------------------
 st.sidebar.header("🔧 Transmission Line Parameters")
 
+# Receiving voltage (Line-Line)
 Vr = st.sidebar.number_input(
     "Receiving End Voltage |Vr| (kV)",
-    min_value=0.0,
+    min_value=1.0,
     max_value=1000.0,
     value=220.0,
     step=1.0,
     format="%.2f"
 )
 
+# ABCD
 st.sidebar.subheader("📘 ABCD Parameters")
 
 A_mag = st.sidebar.number_input(
@@ -86,7 +87,7 @@ B_ang = st.sidebar.number_input(
     format="%.2f"
 )
 
-
+# Load
 S_MVA = st.sidebar.number_input(
     "Receiving End Apparent Power (MVA)",
     min_value=0.0,
@@ -95,28 +96,34 @@ S_MVA = st.sidebar.number_input(
     step=1.0,
     format="%.2f"
 )
-pf = st.sidebar.slider("Receiving End Power Factor", 0.0, 1.0, 0.8)
-# ----------------------------------------------------------------------
-# CONVERT POWER TO CURRENT
-# 3-phase formula:
-# S = √3 × V × I
-# I = S / (√3 × V)
-# Vr in kV, S in MVA → I in A
-# ----------------------------------------------------------------------
 
+pf = st.sidebar.slider(
+    "Receiving End Power Factor",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.8
+)
+
+mode = st.sidebar.radio(
+    "Load Type",
+    ["Lagging", "Leading"]
+)
+
+# ----------------------------------------------------------------------
+# PER-PHASE CONVERSION
+# ----------------------------------------------------------------------
+Vr_phase = (Vr * 1e3) / np.sqrt(3)   # volts
+
+# 3-phase current
 Ir = (S_MVA * 1e6) / (np.sqrt(3) * Vr * 1e3)
 
-
-
-mode = st.sidebar.radio("Load Type", ["Lagging", "Leading"])
-
 # ----------------------------------------------------------------------
-# PHASOR CONVERSION
+# ABCD PHASORS
 # ----------------------------------------------------------------------
 A = A_mag * np.exp(1j * np.radians(A_ang))
 B = B_mag * np.exp(1j * np.radians(B_ang))
 
-Vr_phasor = Vr * np.exp(1j * 0)
+Vr_phasor = Vr_phase + 0j
 
 phi = np.arccos(pf)
 
@@ -126,35 +133,35 @@ else:
     Ir_phasor = Ir * np.exp(1j * phi)
 
 # ----------------------------------------------------------------------
-# SENDING END VOLTAGE
+# SENDING END
 # ----------------------------------------------------------------------
 Vs = A * Vr_phasor + B * Ir_phasor
 
-Vs_mag = np.abs(Vs)
+# Convert to line voltage
+Vs_mag = (np.abs(Vs) * np.sqrt(3)) / 1000  # kV
 
-# Voltage Regulation
+# Voltage regulation
 VR_percent = ((Vs_mag - Vr) / Vr) * 100
 
 # ----------------------------------------------------------------------
-# POWER
+# RECEIVING END POWER (3-phase)
 # ----------------------------------------------------------------------
-S_r = Vr_phasor * np.conj(Ir_phasor)
+S_r = 3 * Vr_phasor * np.conj(Ir_phasor)
 
-P_r = np.real(S_r)
-Q_r = np.imag(S_r)
+P_r = np.real(S_r) / 1e6   # MW
+Q_r = np.imag(S_r) / 1e6   # MVAR
 
 # ----------------------------------------------------------------------
-# RECEIVING END CIRCLE LOCUS
+# POWER CIRCLE
 # ----------------------------------------------------------------------
-theta = np.linspace(-np.pi, np.pi, 500)
+theta = np.linspace(-np.pi, np.pi, 800)
 
 circle_current = Ir * np.exp(1j * theta)
 
-Vs_circle = A * Vr_phasor + B * circle_current
+S_circle = 3 * Vr_phasor * np.conj(circle_current)
 
-# Power coordinates
-P_circle = np.real(Vr_phasor * np.conj(circle_current))
-Q_circle = np.imag(Vr_phasor * np.conj(circle_current))
+P_circle = np.real(S_circle) / 1e6
+Q_circle = np.imag(S_circle) / 1e6
 
 # ----------------------------------------------------------------------
 # LAYOUT
@@ -162,34 +169,46 @@ Q_circle = np.imag(Vr_phasor * np.conj(circle_current))
 col1, col2 = st.columns([1.4, 1])
 
 # ======================================================================
-# CIRCLE DIAGRAM
+# RECEIVING END CIRCLE
 # ======================================================================
 with col1:
-    st.subheader("📈 Receiving End Power Circle Diagram")
+    st.subheader("📈 Receiving End Circle Diagram")
 
     fig, ax = plt.subplots(figsize=(9, 8))
 
-    # Circle locus
-    ax.plot(P_circle, Q_circle, linewidth=2, label="Receiving End Circle")
+    # Circle
+    ax.plot(
+        P_circle,
+        Q_circle,
+        linewidth=2.5,
+        label="Receiving End Power Circle"
+    )
 
     # Operating point
-    ax.plot(P_r, Q_r, 'ro', markersize=8, label="Operating Point")
+    ax.plot(
+        P_r,
+        Q_r,
+        'ro',
+        markersize=8,
+        label="Operating Point"
+    )
 
     ax.annotate(
-        f"PF={pf:.2f}",
+        f"PF = {pf:.2f}",
         (P_r, Q_r),
         xytext=(15, 15),
         textcoords="offset points",
         arrowprops=dict(arrowstyle="->")
     )
 
-    # Axes
+    # Axis
     ax.axhline(0, linestyle="--")
     ax.axvline(0, linestyle="--")
 
-    ax.set_xlabel("Real Power P (kW approx)")
-    ax.set_ylabel("Reactive Power Q (kVAR approx)")
-    ax.set_title("Receiving End Circle Diagram")
+    ax.set_xlabel("Real Power P (MW)")
+    ax.set_ylabel("Reactive Power Q (MVAR)")
+    ax.set_title("Receiving End Power Circle Diagram")
+
     ax.grid(True)
     ax.legend()
 
@@ -205,33 +224,43 @@ with col2:
 
     # Vr
     ax2.arrow(
-        0, 0,
-        np.real(Vr_phasor),
-        np.imag(Vr_phasor),
-        head_width=5,
-        length_includes_head=True,
-        label="Vr"
-    )
-
-    # Vs
-    ax2.arrow(
-        0, 0,
-        np.real(Vs),
-        np.imag(Vs),
+        0,
+        0,
+        np.real(Vr_phasor) / 1000,
+        np.imag(Vr_phasor) / 1000,
         head_width=5,
         length_includes_head=True
     )
 
-    ax2.text(np.real(Vr_phasor), np.imag(Vr_phasor), "Vr")
-    ax2.text(np.real(Vs), np.imag(Vs), "Vs")
+    # Vs
+    ax2.arrow(
+        0,
+        0,
+        np.real(Vs) / 1000,
+        np.imag(Vs) / 1000,
+        head_width=5,
+        length_includes_head=True
+    )
+
+    ax2.text(
+        np.real(Vr_phasor) / 1000,
+        np.imag(Vr_phasor) / 1000,
+        "Vr"
+    )
+
+    ax2.text(
+        np.real(Vs) / 1000,
+        np.imag(Vs) / 1000,
+        "Vs"
+    )
 
     ax2.axhline(0, linestyle="--")
     ax2.axvline(0, linestyle="--")
 
-    lim = max(Vs_mag, Vr) * 1.2
+    lim = max(np.abs(Vs), np.abs(Vr_phasor)) / 1000 * 1.3
 
-    ax2.set_xlim(-lim * 0.2, lim)
-    ax2.set_ylim(-lim * 0.8, lim * 0.8)
+    ax2.set_xlim(-lim * 0.3, lim)
+    ax2.set_ylim(-lim, lim)
 
     ax2.set_aspect("equal")
     ax2.grid(True)
@@ -239,16 +268,16 @@ with col2:
     st.pyplot(fig2)
 
 # ======================================================================
-# RESULTS PANEL
+# RESULTS
 # ======================================================================
 st.divider()
 st.subheader("📊 Calculated Results")
 
 m1, m2, m3, m4 = st.columns(4)
 
-m1.metric("Receiving Real Power P", f"{P_r:.2f}")
-m2.metric("Receiving Reactive Power Q", f"{Q_r:.2f}")
-m3.metric("Sending Voltage |Vs|", f"{Vs_mag:.2f} kV")
+m1.metric("Receiving Real Power", f"{P_r:.2f} MW")
+m2.metric("Receiving Reactive Power", f"{Q_r:.2f} MVAR")
+m3.metric("Sending End Voltage", f"{Vs_mag:.2f} kV")
 m4.metric("Voltage Regulation", f"{VR_percent:.2f} %")
 
 # ======================================================================
@@ -265,31 +294,38 @@ Vs = A·Vr + B·Ir
 %VR = ((|Vs| - |Vr|)/|Vr|) × 100
 
 ### Receiving End Complex Power:
-S = Vr × Ir*
+S = 3 × Vr × Ir*
 """)
 
 # ======================================================================
 # STATUS
 # ======================================================================
 if VR_percent > 0:
-    st.warning("⚠️ Positive regulation: Sending voltage exceeds receiving voltage")
+    st.warning("⚠️ Positive Regulation: Sending voltage is higher than receiving voltage")
+elif VR_percent < 0:
+    st.success("✅ Negative Regulation / Ferranti Effect Region")
 else:
-    st.success("✅ Negative regulation / Ferranti effect region")
+    st.info("ℹ️ Zero Voltage Regulation")
 
 # ======================================================================
-# EXTRA INSIGHTS
+# ENGINEERING INSIGHT
 # ======================================================================
 with st.expander("💡 Engineering Insight"):
     st.write("""
-### Lagging Power Factor:
+### Lagging Load:
 - Higher reactive demand
-- Larger voltage drop
-- Poorer regulation
+- More voltage drop
+- Poor voltage regulation
 
-### Leading Power Factor:
-- Better voltage support
-- Can reduce regulation
-- May cause Ferranti effect
+### Leading Load:
+- Voltage support improves
+- Can reduce or reverse regulation
+- Excessive leading PF may cause Ferranti effect
+
+### ABCD Notes:
+- A ≈ D
+- B = Series impedance effect
+- C = Shunt admittance effect
 """)
 
 # ======================================================================
