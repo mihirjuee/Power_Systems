@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 # ----------------------------------------------------------------------
 st.set_page_config(
     page_title="Receiving End Circle Diagram",
-    page_icon="⚡",
+    page_icon="logo.png",
     layout="wide"
 )
 
