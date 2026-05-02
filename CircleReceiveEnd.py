@@ -1,15 +1,15 @@
 # ======================================================================
 # RECEIVING END CIRCLE DIAGRAM OF TRANSMISSION LINE
-# ENHANCED VERSION
+# COMPLETE ADVANCED VERSION
 # FEATURES:
-# ✅ Correct 3-phase ABCD calculations
-# ✅ Receiving end power circle
-# ✅ Operating point
-# ✅ Origin → Operating Point
-# ✅ Origin → Centre
-# ✅ Centre → Operating Point
-# ✅ Voltage phasor diagram
+# ✅ ABCD parameter model
+# ✅ Receiving end circle diagram
+# ✅ Operating point vectors
+# ✅ Sending end power
+# ✅ Sending end power factor
+# ✅ Load angle
 # ✅ Voltage regulation
+# ✅ Phasor diagram
 # ======================================================================
 
 import streamlit as st
@@ -39,11 +39,10 @@ st.markdown("""
 st.title("⚡ Receiving End Circle Diagram of Transmission Line")
 
 # ----------------------------------------------------------------------
-# SIDEBAR
+# SIDEBAR INPUTS
 # ----------------------------------------------------------------------
 st.sidebar.header("🔧 Transmission Line Parameters")
 
-# Receiving voltage (line voltage)
 Vr = st.sidebar.number_input(
     "Receiving End Voltage |Vr| (kV)",
     min_value=1.0,
@@ -53,7 +52,6 @@ Vr = st.sidebar.number_input(
     format="%.2f"
 )
 
-# ABCD
 st.sidebar.subheader("📘 ABCD Parameters")
 
 A_mag = st.sidebar.number_input(
@@ -92,7 +90,6 @@ B_ang = st.sidebar.number_input(
     format="%.2f"
 )
 
-# Load
 S_MVA = st.sidebar.number_input(
     "Receiving End Apparent Power (MVA)",
     min_value=0.0,
@@ -115,18 +112,24 @@ mode = st.sidebar.radio(
 )
 
 # ----------------------------------------------------------------------
-# PER PHASE VALUES
+# PER PHASE MODEL
 # ----------------------------------------------------------------------
-Vr_phase = (Vr * 1e3) / np.sqrt(3)   # volts
+Vr_phase = (Vr * 1e3) / np.sqrt(3)
 
-# Line current from 3-phase power
 Ir = (S_MVA * 1e6) / (np.sqrt(3) * Vr * 1e3)
 
 # ----------------------------------------------------------------------
-# ABCD PHASORS
+# ABCD
 # ----------------------------------------------------------------------
 A = A_mag * np.exp(1j * np.radians(A_ang))
 B = B_mag * np.exp(1j * np.radians(B_ang))
+
+D = A
+
+if abs(B) > 1e-12:
+    C = (A * D - 1) / B
+else:
+    C = 0 + 0j
 
 Vr_phasor = Vr_phase + 0j
 
@@ -138,11 +141,43 @@ else:
     Ir_phasor = Ir * np.exp(1j * phi)
 
 # ----------------------------------------------------------------------
-# SENDING END VOLTAGE
+# SENDING END
 # ----------------------------------------------------------------------
 Vs = A * Vr_phasor + B * Ir_phasor
+Is = C * Vr_phasor + D * Ir_phasor
 
-Vs_mag = (np.abs(Vs) * np.sqrt(3)) / 1000   # kV
+Vs_mag = np.abs(Vs) * np.sqrt(3) / 1000
+
+# ----------------------------------------------------------------------
+# RECEIVING END POWER
+# ----------------------------------------------------------------------
+S_r = 3 * Vr_phasor * np.conj(Ir_phasor)
+
+P_r = np.real(S_r) / 1e6
+Q_r = np.imag(S_r) / 1e6
+S_r_mag = np.abs(S_r) / 1e6
+
+# ----------------------------------------------------------------------
+# SENDING END POWER
+# ----------------------------------------------------------------------
+S_s = 3 * Vs * np.conj(Is)
+
+P_s = np.real(S_s) / 1e6
+Q_s = np.imag(S_s) / 1e6
+S_s_mag = np.abs(S_s) / 1e6
+
+# Sending PF
+if S_s_mag > 0:
+    pf_s = abs(P_s) / S_s_mag
+else:
+    pf_s = 0
+
+pf_s_type = "Lagging" if Q_s >= 0 else "Leading"
+
+# ----------------------------------------------------------------------
+# LOAD ANGLE
+# ----------------------------------------------------------------------
+load_angle = np.degrees(np.angle(Vs) - np.angle(Vr_phasor))
 
 # ----------------------------------------------------------------------
 # VOLTAGE REGULATION
@@ -150,18 +185,7 @@ Vs_mag = (np.abs(Vs) * np.sqrt(3)) / 1000   # kV
 VR_percent = ((Vs_mag - Vr) / Vr) * 100
 
 # ----------------------------------------------------------------------
-# RECEIVING POWER
-# ----------------------------------------------------------------------
-S_r = 3 * Vr_phasor * np.conj(Ir_phasor)
-
-P_r = np.real(S_r) / 1e6   # MW
-Q_r = np.imag(S_r) / 1e6   # MVAR
-
-# Apparent power
-S_r_mag = np.abs(S_r) / 1e6
-
-# ----------------------------------------------------------------------
-# CIRCLE LOCUS
+# RECEIVING END CIRCLE
 # ----------------------------------------------------------------------
 theta = np.linspace(-np.pi, np.pi, 800)
 
@@ -172,18 +196,13 @@ S_circle = 3 * Vr_phasor * np.conj(circle_current)
 P_circle = np.real(S_circle) / 1e6
 Q_circle = np.imag(S_circle) / 1e6
 
-# Circle center and radius
-center_x = 0
-center_y = 0
-radius = S_r_mag
-
 # ----------------------------------------------------------------------
 # LAYOUT
 # ----------------------------------------------------------------------
 col1, col2 = st.columns([1.5, 1])
 
 # ======================================================================
-# RECEIVING END CIRCLE DIAGRAM
+# CIRCLE DIAGRAM
 # ======================================================================
 with col1:
     st.subheader("📈 Receiving End Circle Diagram")
@@ -194,74 +213,87 @@ with col1:
     ax.plot(
         P_circle,
         Q_circle,
-        linewidth=2.5,
-        label="Receiving End Circle"
-    )
-
-    # Operating point
-    ax.plot(
-        P_r,
-        Q_r,
-        'ro',
-        markersize=9,
-        label="Operating Point"
-    )
-
-    # ------------------------------------------------------------------
-    # Origin → Operating Point
-    # ------------------------------------------------------------------
-    ax.plot(
-        [0, P_r],
-        [0, Q_r],
-        'g--',
-        linewidth=2,
-        label="Origin → Operating Point"
-    )
-
-    # ------------------------------------------------------------------
-    # Origin → Centre
-    # ------------------------------------------------------------------
-    ax.plot(
-        [0, center_x],
-        [0, center_y],
-        'k:',
-        linewidth=2,
-        label="Origin → Centre"
-    )
-
-    # ------------------------------------------------------------------
-    # Centre → Operating Point
-    # ------------------------------------------------------------------
-    ax.plot(
-        [center_x, P_r],
-        [center_y, Q_r],
-        'm-.',
-        linewidth=2,
-        label="Centre → Operating Point"
+        linewidth=3,
+        color="blue",
+        label="Receiving End Circle",
+        zorder=1
     )
 
     # Centre
-    ax.plot(center_x, center_y, 'bo', markersize=8)
+    center_x = 0
+    center_y = 0
+
+    ax.scatter(center_x, center_y, color="black", s=80, zorder=5)
+
+    # Operating point
+    ax.scatter(
+        P_r,
+        Q_r,
+        color="red",
+        s=100,
+        zorder=6,
+        label="Operating Point"
+    )
+
+    # Origin → Operating Point
+    ax.plot(
+        [0, P_r],
+        [0, Q_r],
+        color="green",
+        linestyle="--",
+        linewidth=3,
+        label="Origin → Operating Point"
+    )
+
+    # Origin → Centre
+    ax.plot(
+        [0, center_x],
+        [0, center_y],
+        color="purple",
+        linestyle=":",
+        linewidth=3,
+        label="Origin → Centre"
+    )
+
+    # Centre → Operating Point
+    ax.plot(
+        [center_x, P_r],
+        [center_y, Q_r],
+        color="orange",
+        linestyle="-.",
+        linewidth=3,
+        label="Centre → Operating Point"
+    )
 
     # Labels
     ax.annotate(
         "Centre",
         (center_x, center_y),
-        xytext=(10, -15),
+        xytext=(15, -20),
         textcoords="offset points"
     )
 
     ax.annotate(
         f"PF={pf:.2f}",
         (P_r, Q_r),
-        xytext=(15, 15),
+        xytext=(20, 20),
         textcoords="offset points",
         arrowprops=dict(arrowstyle="->")
     )
 
     # Axes
-    ax.axhline(0, linestyle="--")
-    ax.axvline(0, linestyle="--")
+    ax.axhline(0, color="black", linestyle="--")
+    ax.axvline(0, color="black", linestyle="--")
+
+    max_range = max(
+        np.max(np.abs(P_circle)),
+        np.max(np.abs(Q_circle)),
+        abs(P_r),
+        abs(Q_r)
+    ) * 1.2
+
+    ax.set_xlim(-max_range, max_range)
+    ax.set_ylim(-max_range, max_range)
 
     ax.set_xlabel("Real Power P (MW)")
     ax.set_ylabel("Reactive Power Q (MVAR)")
@@ -298,17 +330,8 @@ with col2:
         length_includes_head=True
     )
 
-    ax2.text(
-        np.real(Vr_phasor) / 1000,
-        np.imag(Vr_phasor) / 1000,
-        "Vr"
-    )
-
-    ax2.text(
-        np.real(Vs) / 1000,
-        np.imag(Vs) / 1000,
-        "Vs"
-    )
+    ax2.text(np.real(Vr_phasor) / 1000, np.imag(Vr_phasor) / 1000, "Vr")
+    ax2.text(np.real(Vs) / 1000, np.imag(Vs) / 1000, "Vs")
 
     ax2.axhline(0, linestyle="--")
     ax2.axvline(0, linestyle="--")
@@ -329,12 +352,18 @@ with col2:
 st.divider()
 st.subheader("📊 Calculated Results")
 
-m1, m2, m3, m4 = st.columns(4)
+r1, r2, r3, r4 = st.columns(4)
+r1.metric("Receiving Real Power", f"{P_r:.2f} MW")
+r2.metric("Receiving Reactive Power", f"{Q_r:.2f} MVAR")
+r3.metric("Sending End Voltage", f"{Vs_mag:.2f} kV")
+r4.metric("Voltage Regulation", f"{VR_percent:.2f} %")
 
-m1.metric("Receiving Real Power", f"{P_r:.2f} MW")
-m2.metric("Receiving Reactive Power", f"{Q_r:.2f} MVAR")
-m3.metric("Sending End Voltage", f"{Vs_mag:.2f} kV")
-m4.metric("Voltage Regulation", f"{VR_percent:.2f} %")
+s1, s2, s3 = st.columns(3)
+s1.metric("Sending Real Power", f"{P_s:.2f} MW")
+s2.metric("Sending Reactive Power", f"{Q_s:.2f} MVAR")
+s3.metric("Sending PF", f"{pf_s:.3f} ({pf_s_type})")
+
+st.metric("Load Angle δ", f"{load_angle:.2f}°")
 
 # ======================================================================
 # THEORY
@@ -346,39 +375,45 @@ st.markdown("""
 ### Sending End Voltage:
 Vs = A·Vr + B·Ir
 
-### Receiving End Complex Power:
-S = 3 × Vr × Ir*
+### Sending End Current:
+Is = C·Vr + D·Ir
 
-### Voltage Regulation:
-%VR = ((|Vs| - |Vr|)/|Vr|) × 100
+### Receiving End Power:
+Sr = 3 × Vr × Ir*
+
+### Sending End Power:
+Ss = 3 × Vs × Is*
 """)
 
 # ======================================================================
 # STATUS
 # ======================================================================
 if VR_percent > 0:
-    st.warning("⚠️ Positive Regulation: Sending voltage exceeds receiving voltage")
+    st.warning("⚠️ Positive Regulation")
 elif VR_percent < 0:
-    st.success("✅ Negative Regulation / Ferranti Effect Region")
+    st.success("✅ Ferranti Effect / Negative Regulation")
 else:
-    st.info("ℹ️ Zero Voltage Regulation")
+    st.info("ℹ️ Zero Regulation")
 
 # ======================================================================
 # INSIGHTS
 # ======================================================================
 with st.expander("💡 Engineering Insight"):
     st.write("""
-### Origin → Operating Point:
-Represents actual receiving-end apparent power.
+### Load Angle:
+Represents angular displacement between sending and receiving voltages.
 
-### Centre → Operating Point:
-Represents radius vector of circle.
+### Sending Power:
+Always exceeds receiving power due to losses.
 
-### Lagging PF:
-Higher Q demand → Voltage drop increases
+### Sending PF:
+Indicates source burden.
 
-### Leading PF:
-Voltage support improves → Ferranti possible
+### Lagging Load:
+Higher Q demand → Larger voltage drop
+
+### Leading Load:
+Voltage support improves
 """)
 
 # ======================================================================
